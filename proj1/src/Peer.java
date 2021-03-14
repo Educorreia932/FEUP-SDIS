@@ -6,7 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-public class Peer implements Client{
+public class Peer implements RMI {
   private int id;
   private String version, access_point;
   private MC_Channel mc_channel;
@@ -22,15 +22,14 @@ public class Peer implements Client{
 
     Peer peer_obj = new Peer(args);
     try { //RMI
-      Client client_stub = (Client) UnicastRemoteObject.exportObject(peer_obj,0);
+      RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer_obj,0);
       // Bind the remote object's stub in the registry
       Registry registry = LocateRegistry.getRegistry();
-      registry.bind(peer_obj.access_point, client_stub);
+      registry.bind(peer_obj.access_point, RMI_stub);
     } catch (RemoteException | AlreadyBoundException e) {
       e.printStackTrace();
     }
 
-    // TODO: FileSystem
   }
 
   public Peer(String[] args){
@@ -69,7 +68,7 @@ public class Peer implements Client{
   }
 
   @Override
-  public void setStorageSpace(int max_space){
+  public void reclaim(int max_space){
     System.out.println("Not implemented yet");
   }
 

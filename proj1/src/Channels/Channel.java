@@ -1,6 +1,6 @@
 package Channels;
 
-public class Channel {
+public class Channel{
     private String host;
     private int port;
 
