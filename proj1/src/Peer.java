@@ -1,5 +1,7 @@
 import Channels.*;
+import sub_protocols.Backup;
 
+import java.io.File;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -45,7 +47,7 @@ public class Peer implements RMI {
       System.out.println("Exception: " + e.getMessage());
       System.exit(1);
     }
-    this.storage = new Storage(this.id);
+
   }
 
   private static void usage(){
@@ -54,7 +56,13 @@ public class Peer implements RMI {
 
   @Override
   public void backupFile(String file_pathname, int replication_degree) {
-    System.out.println("Not implemented yet");
+    File file = storage.getFile(file_pathname);
+    if(file == null){
+      System.out.println("File does not exist. Aborting.");
+    }
+
+    new Backup(this.id, file, replication_degree);
+
   }
 
   @Override
@@ -68,7 +76,7 @@ public class Peer implements RMI {
   }
 
   @Override
-  public void reclaim(int max_space){
+  public void reclaim (int max_space){
     System.out.println("Not implemented yet");
   }
 
