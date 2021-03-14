@@ -12,6 +12,7 @@ public class Peer implements Client{
   private MC_Channel mc_channel;
   private MDB_Channel mdb_channel;
   private MDR_Channel mdr_channel;
+  private Storage storage;
 
   public static void main(String[] args) {
     if(args.length != 9){
@@ -45,6 +46,7 @@ public class Peer implements Client{
       System.out.println("Exception: " + e.getMessage());
       System.exit(1);
     }
+    this.storage = new Storage(this.id);
   }
 
   private static void usage(){
