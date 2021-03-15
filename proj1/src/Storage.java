@@ -15,9 +15,6 @@ public class Storage {
         backedup_files = new ArrayList<>();
     }
 
-    public String get(){
-        return backedup_files.get(0);
-    }
     public static Storage getInstance() {
         if(instance == null){
             instance = new Storage();
