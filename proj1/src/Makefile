@@ -14,4 +14,7 @@ clean:
 	killall rmiregistry
 	rm -rf $(OUT_DIR)
 
+backup: all
+	java -cp $(OUT_DIR) TestApp 1 BACKUP test.txt 2
+
 FORCE:
