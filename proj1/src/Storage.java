@@ -40,7 +40,7 @@ public class Storage {
      * @param peer_id
      */
     public void makeDirectories(int peer_id){
-        File directory = new File("filesystem/peer" + peer_id + "/backup/");
+        File directory = new File("../filesystem/peer" + peer_id + "/backup/");
         if(!directory.exists())
             directory.mkdirs();
     }
