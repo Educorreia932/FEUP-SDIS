@@ -1,4 +1,4 @@
-package Channels;
+package channels;
 
 import java.io.IOException;
 import java.net.InetAddress;

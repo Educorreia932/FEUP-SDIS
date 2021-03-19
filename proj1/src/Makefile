@@ -10,6 +10,9 @@ peer1: clean all
 	rmiregistry -J-Djava.class.path=$(OUT_DIR) &
 	java -cp $(OUT_DIR) Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
+peer2:
+	java -cp $(OUT_DIR) Peer 1.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+
 clean:
 	killall rmiregistry
 	rm -rf $(OUT_DIR)

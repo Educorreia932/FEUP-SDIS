@@ -1,4 +1,4 @@
-import Channels.*;
+import channels.*;
 import sub_protocols.Backup;
 
 import java.io.File;
@@ -36,6 +36,7 @@ public class Peer implements RMI {
 
     public Peer(String[] args) {
         this.version = args[0];
+
         try {
             id = Integer.parseInt(args[1]);
             access_point = args[2];
@@ -43,10 +44,13 @@ public class Peer implements RMI {
             mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]));
             mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]));
 
-        } catch (NumberFormatException e) {
+        }
+
+        catch (NumberFormatException e) {
             System.out.println("Exception: " + e.getMessage());
             System.exit(1);
         }
+
         storage = Storage.getInstance();
         storage.makeDirectories(id);
     }
