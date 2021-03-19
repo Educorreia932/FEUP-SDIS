@@ -1,4 +1,13 @@
 package messages;
 
-public class DeleteMessage {
+public class DeleteMessage extends Message {
+
+    public DeleteMessage(String version, String sender_id, String file_id) {
+        super(version, "DELETE", sender_id, file_id);
+    }
+
+    @Override
+    public String toString() {
+        return super.generateHeader("");
+    }
 }
