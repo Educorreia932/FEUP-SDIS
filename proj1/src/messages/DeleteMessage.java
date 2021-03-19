@@ -8,6 +8,6 @@ public class DeleteMessage extends Message {
 
     @Override
     public String toString() {
-        return super.generateHeader("");
+        return super.getHeader("");
     }
 }

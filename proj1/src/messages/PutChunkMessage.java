@@ -14,8 +14,8 @@ public class PutChunkMessage extends Message {
     @Override
     public String toString() {
         String content = String.format("%d %d", chunk_no, replication_degree);
-        String body = ""; // TODO: Include real body
+        // TODO: Include body
 
-        return super.generateHeader(content) + body;
+        return super.getHeader(content);
     }
 }

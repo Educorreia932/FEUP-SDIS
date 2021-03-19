@@ -11,6 +11,7 @@ public class ChunkMessage extends Message{
     @Override
     public String toString() {
         String content = String.format("%d", chunk_no);
-        return super.generateHeader(content);
+        // TODO: Include body
+        return super.getHeader(content);
     }
 }

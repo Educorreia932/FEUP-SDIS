@@ -20,6 +20,5 @@ public class Channel{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }

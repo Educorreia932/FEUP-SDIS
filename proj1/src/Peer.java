@@ -43,14 +43,11 @@ public class Peer implements RMI {
             mc_channel = new MC_Channel(args[3], Integer.parseInt(args[4]));
             mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]));
             mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]));
-
         }
-
         catch (NumberFormatException e) {
             System.out.println("Exception: " + e.getMessage());
             System.exit(1);
         }
-
         storage = Storage.getInstance();
         storage.makeDirectories(id);
     }
@@ -61,13 +58,13 @@ public class Peer implements RMI {
 
     @Override
     public void backupFile(String file_pathname, int replication_degree) {
-        File file = storage.getFile(file_pathname);
+        File file = storage.getFile(file_pathname, id);
 
         if (file == null) {
             System.out.println("File does not exist. Aborting.");
         }
-
         else {
+            storage.getChunks(file);
             storage.addBackedUpFile(file.toPath());
             new Backup(this.id, file, replication_degree);
         }

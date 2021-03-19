@@ -1,18 +1,23 @@
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Storage {
-    private List<String> backedup_files;
+    private Set<String> backedup_files;
     private static Storage instance;
+    private final String FILESYSTEM_FOLDER = "../filesystem/peer";
+
     public Storage(){
-        backedup_files = new ArrayList<>();
+        backedup_files = new HashSet<String>();
     }
 
     public static Storage getInstance() {
@@ -25,10 +30,12 @@ public class Storage {
     /**
      * Returns file with path equal to file_pathname
      * @param file_pathname
+     * @param peer_id
      * @return File
      */
-    public File getFile(String file_pathname){
-        File file = new File(file_pathname.trim());
+    public File getFile(String file_pathname, int peer_id){
+        String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
+        File file = new File(path);
         if (file.exists() && !file.isDirectory()){
             return file;
         }
@@ -40,17 +47,17 @@ public class Storage {
      * @param peer_id
      */
     public void makeDirectories(int peer_id){
-        File directory = new File("../filesystem/peer" + peer_id + "/backup/");
+        File directory = new File(FILESYSTEM_FOLDER + peer_id + "/backup/");
         if(!directory.exists())
             directory.mkdirs();
     }
 
     /**
      * Hashes string passed in argument
-     * @param tobeHashed
+     * @param toBeHashed
      * @return
      */
-    public String hash(String tobeHashed) {
+    public String hash(String toBeHashed) {
         MessageDigest digest = null;
         // SHA-256
         try {
@@ -60,7 +67,7 @@ public class Storage {
             e.printStackTrace();
         }
         byte[] encoded_hash = digest.digest(
-                tobeHashed.getBytes(StandardCharsets.UTF_8));
+                toBeHashed.getBytes(StandardCharsets.UTF_8));
         return bytesToHex(encoded_hash);
     }
 
@@ -68,7 +75,6 @@ public class Storage {
     public void addBackedUpFile(Path path){
         String file_id = getMetadataString(path);
         String hashed_id = hash(file_id);
-        // TODO: Check if already hashed
         backedup_files.add(hashed_id);
     }
 
@@ -104,5 +110,9 @@ public class Storage {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    public void getChunks(File file){
+
     }
 }

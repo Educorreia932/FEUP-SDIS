@@ -13,6 +13,6 @@ public class StoredMessage extends Message {
     public String toString() {
         String content = String.format("%d", chunk_no);
 
-        return super.generateHeader(content);
+        return super.getHeader(content);
     }
 }

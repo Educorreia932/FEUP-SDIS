@@ -14,7 +14,7 @@ public abstract class Message {
         this.file_id = file_id;
     }
 
-    public String generateHeader(String content) {
+    public String getHeader(String content) {
         return String.format("%s %s %s %s %s %s %s", version, type, sender_id, file_id, content, CRLF, CRLF);
     }
 }
