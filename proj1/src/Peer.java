@@ -66,7 +66,7 @@ public class Peer implements RMI {
         else {
             storage.getChunks(file);
             storage.addBackedUpFile(file.toPath());
-            new Backup(this.id, file, replication_degree);
+            new Backup(this.id, file, replication_degree).run();
         }
     }
 
