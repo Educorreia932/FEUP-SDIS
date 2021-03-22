@@ -1,8 +1,8 @@
 package Peer;
 
 import channels.*;
-import messages.Message;
-import sub_protocols.Backup;
+import messages.*;
+import sub_protocols.*;
 
 import java.io.File;
 import java.net.DatagramPacket;
