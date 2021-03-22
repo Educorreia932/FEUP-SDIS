@@ -1,5 +1,6 @@
 package Peer;
 
+import Peer.Storage.Storage;
 import channels.*;
 import messages.*;
 import sub_protocols.*;
@@ -34,7 +35,8 @@ public class Peer implements RMI {
             Registry registry = LocateRegistry.getRegistry();
             registry.bind(peer_obj.access_point, RMI_stub);
         } catch (RemoteException | AlreadyBoundException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to bind peer object in the registry.\n Aborting...");
+            System.exit(-1);
         }
 
         // Start listening on channels
@@ -51,12 +53,13 @@ public class Peer implements RMI {
             mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
         }
         catch (NumberFormatException e) {
-            System.out.println("Exception: " + e.getMessage());
-            System.exit(1);
+            System.err.println("ERROR: Bad input. Check number arguments.");
+            usage();
+            System.exit(-1);
         }
         // set up storage
-        storage = Storage.getInstance();
-        storage.makeDirectories(id);
+        storage = new Storage(id);
+        storage.makeDirectories();
     }
 
     @Override
@@ -64,7 +67,7 @@ public class Peer implements RMI {
         File file = storage.getFile(file_pathname, id);
 
         if (file == null) {
-            System.out.println("File does not exist. Aborting.");
+            System.err.println("ERROR: File to backup does not exist. Aborting.");
         }
         else {
             String file_id = storage.addBackedUpFile(file.toPath());
@@ -96,6 +99,8 @@ public class Peer implements RMI {
         byte[] packet_data = packet.getData();  // get bytes
         byte[] header = Message.getHeader(packet_data); // get header
         byte[] body = Message.getBody(packet_data, header.length); // get body
+
+        // TODO: size is not 64kb??
 
         String header_str = new String(header);
         String[] split_header = header_str.split(" "); // split header by spaces

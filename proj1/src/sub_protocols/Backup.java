@@ -54,6 +54,7 @@ public class Backup implements Runnable{
 
         // Send buffer
         mdb_channel.send(buffer);
+        System.out.println("Sent packet");
 
         // Update variables
         file_size -= read_bytes;  // update bytes left to read from file

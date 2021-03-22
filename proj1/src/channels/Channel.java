@@ -25,16 +25,19 @@ public class Channel implements Runnable{
 
     @Override
     public void run() {
-        start();    // Start channel
+        if(start() != 0 ) return;
         running = true;
-        try {
-            while(running){
+
+        while(running){
+            try {
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet); // Receive packet
+                System.out.println("Received packet.");
                 peer.parseMsg(packet);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            catch (IOException e) {
+                System.err.println("ERROR: Failed to receive packet.");
+            }
         }
     }
 
@@ -43,19 +46,21 @@ public class Channel implements Runnable{
         try {
             socket.leaveGroup(group);
         } catch (IOException e) {
-            e.printStackTrace();
+                System.err.println("ERROR: Failed to leave group.");
         }
         socket.close();
     }
 
-    private void start(){
+    private int start(){
         try {
             socket= new MulticastSocket(port);
             group = InetAddress.getByName(host);
             socket.joinGroup(group);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to start channel.");
+            return -1;
         }
+        return 0;
     }
 
     public void send(byte[] buffer){
@@ -64,7 +69,7 @@ public class Channel implements Runnable{
         try {
             socket.send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to send packet.");
         }
     }
 }

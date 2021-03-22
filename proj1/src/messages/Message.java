@@ -20,7 +20,7 @@ public abstract class Message {
 
     public static byte[] getHeader(byte[] msg){
         int header_len = getCRLFIndex(msg);
-        byte[] header = new byte[header_len + 2];
+        byte[] header = new byte[header_len];
 
         System.arraycopy(msg, 0, header, 0, header_len);
         return header;

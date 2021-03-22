@@ -11,16 +11,10 @@ public class TestApp {
             System.exit(1);
         }
 
-        // RMI
-        Registry registry = null;
-        RMI stub = null;
         try {
-            registry = LocateRegistry.getRegistry(); // default port: 1099
-            stub = (RMI) registry.lookup(args[0]);
-        } catch (RemoteException | NotBoundException e) {
-            e.printStackTrace();
-        }
-        try {
+            Registry registry = LocateRegistry.getRegistry(); // default port: 1099
+            RMI stub = (RMI) registry.lookup(args[0]);
+
             switch (args[1]) {
                 case "BACKUP":
                     if (args.length < 4) {
@@ -71,8 +65,8 @@ public class TestApp {
                     usage();
                     System.exit(1);
             }
-        }catch (RemoteException e) {
-            e.printStackTrace();
+        }catch (RemoteException | NotBoundException e) {
+            System.err.println("ERROR: Failed to connect to remote interface. \nAborting...");
         }
     }
 

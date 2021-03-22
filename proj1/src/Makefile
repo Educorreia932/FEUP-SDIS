@@ -28,6 +28,7 @@ build: build_test build_peer
 # clean
 clean:
 	rm -rf ../out
+	rm -rf ../filesystem
 
 # RMI
 rmi:
