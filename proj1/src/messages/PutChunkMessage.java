@@ -1,10 +1,10 @@
 package messages;
 
 public class PutChunkMessage extends Message {
-    private int replication_degree;
+    private final int replication_degree;
     private int chunk_no;
 
-    public PutChunkMessage(String version, String sender_id, String file_id, int replication_degree, int chunk_no) {
+    public PutChunkMessage(String version, int sender_id, String file_id, int replication_degree, int chunk_no) {
         super(version, "PUTCHUNK", sender_id, file_id);
 
         this.replication_degree = replication_degree;
