@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Storage {
@@ -71,11 +70,11 @@ public class Storage {
         return bytesToHex(encoded_hash);
     }
 
-
-    public void addBackedUpFile(Path path){
+    public String addBackedUpFile(Path path){
         String file_id = getMetadataString(path);
         String hashed_id = hash(file_id);
         backedup_files.add(hashed_id);
+        return hashed_id;
     }
 
     /**
@@ -110,9 +109,5 @@ public class Storage {
             hexString.append(hex);
         }
         return hexString.toString();
-    }
-
-    public void getChunks(File file){
-
     }
 }

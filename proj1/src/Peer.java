@@ -10,11 +10,12 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Peer implements RMI {
     private int id;
-    private String version, access_point;
+    private String version;
+    private String access_point;
     private MC_Channel mc_channel;
     private MDB_Channel mdb_channel;
     private MDR_Channel mdr_channel;
-    private Storage storage;
+    private final Storage storage;
 
     public static void main(String[] args) {
         if (args.length != 9) {
@@ -22,7 +23,7 @@ public class Peer implements RMI {
             System.exit(1);
         }
 
-        Peer peer_obj = new Peer(args);
+        Peer peer_obj = new Peer(args); // create peer
         try { //RMI
             RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer_obj, 0);
             // Bind the remote object's stub in the registry
@@ -32,12 +33,13 @@ public class Peer implements RMI {
             e.printStackTrace();
         }
 
+        // Start listening on channels
+        peer_obj.mdb_channel.run();
     }
 
     public Peer(String[] args) {
-        this.version = args[0];
-
         try {
+            version = args[0];
             id = Integer.parseInt(args[1]);
             access_point = args[2];
             mc_channel = new MC_Channel(args[3], Integer.parseInt(args[4]));
@@ -48,12 +50,9 @@ public class Peer implements RMI {
             System.out.println("Exception: " + e.getMessage());
             System.exit(1);
         }
+        // set up storage
         storage = Storage.getInstance();
         storage.makeDirectories(id);
-    }
-
-    private static void usage() {
-        System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
 
     @Override
@@ -64,9 +63,8 @@ public class Peer implements RMI {
             System.out.println("File does not exist. Aborting.");
         }
         else {
-            storage.getChunks(file);
-            storage.addBackedUpFile(file.toPath());
-            new Backup(this.id, file, replication_degree).run();
+            String file_id = storage.addBackedUpFile(file.toPath());
+            new Backup(this.id, version, file, file_id, replication_degree, mdb_channel).run();
         }
     }
 
@@ -88,5 +86,9 @@ public class Peer implements RMI {
     @Override
     public void getStateInformation() {
         System.out.println("Not implemented yet");
+    }
+
+    private static void usage() {
+        System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
 }

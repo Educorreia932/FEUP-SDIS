@@ -9,6 +9,7 @@ public class TestApp {
             System.exit(1);
         }
 
+        // RMI
         Registry registry = null;
         RMI stub = null;
         try {
@@ -25,10 +26,7 @@ public class TestApp {
                         System.exit(1);
                     }
 
-
                     stub.backupFile(args[2], Integer.parseInt(args[3]));
-
-
                     break;
 
                 case "RESTORE":
