@@ -1,6 +1,8 @@
+package Peer;
+
+import messages.Message;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Storage {
+public class Storage{
     private Set<String> backedup_files;
     private static Storage instance;
     private final String FILESYSTEM_FOLDER = "../filesystem/peer";
@@ -24,6 +26,37 @@ public class Storage {
             instance = new Storage();
         }
         return instance;
+    }
+
+    public void execute(String[] header, byte[] body){
+        String version = header[0];
+        String msg_type = header[1];
+        String sender_id = header[2];
+        String file_id = header[3];
+        StorageThread st = null;
+        int chunkno, replication_degree;
+
+        switch(msg_type){
+            case "PUTCHUNK":
+                chunkno = Integer.parseInt(header[4]);
+                replication_degree = Integer.parseInt(header[5]);
+                st = new StorageThread(version, msg_type, sender_id,
+                        file_id, chunkno, replication_degree);
+                break;
+            case "STORED":
+            case "GETCHUNK":
+            case "CHUNK":
+            case "REMOVED":
+                chunkno = Integer.parseInt(header[4]);
+                st = new StorageThread(version, msg_type, sender_id,
+                        file_id, chunkno);
+                break;
+            case "DELETE":
+                st = new StorageThread(version, msg_type, sender_id,
+                        file_id);
+                break;
+        }
+        st.run();
     }
 
     /**

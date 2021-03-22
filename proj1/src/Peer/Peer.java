@@ -1,7 +1,11 @@
+package Peer;
+
 import channels.*;
+import messages.Message;
 import sub_protocols.Backup;
 
 import java.io.File;
+import java.net.DatagramPacket;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -42,9 +46,9 @@ public class Peer implements RMI {
             version = args[0];
             id = Integer.parseInt(args[1]);
             access_point = args[2];
-            mc_channel = new MC_Channel(args[3], Integer.parseInt(args[4]));
-            mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]));
-            mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]));
+            mc_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
+            mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
+            mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
         }
         catch (NumberFormatException e) {
             System.out.println("Exception: " + e.getMessage());
@@ -86,6 +90,20 @@ public class Peer implements RMI {
     @Override
     public void getStateInformation() {
         System.out.println("Not implemented yet");
+    }
+
+    public void parseMsg(DatagramPacket packet){
+        byte[] packet_data = packet.getData();  // get bytes
+        byte[] header = Message.getHeader(packet_data); // get header
+        byte[] body = Message.getBody(packet_data, header.length); // get body
+
+        String header_str = new String(header);
+        String[] split_header = header_str.split(" "); // split header by spaces
+
+        int sender_id = Integer.parseInt(split_header[2]);
+        if(sender_id == id) return; // ignore msg from itself
+
+        storage.execute(split_header, body); // execute msg
     }
 
     private static void usage() {
