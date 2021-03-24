@@ -33,7 +33,7 @@ public class Channel implements Runnable{
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet); // Receive packet
                 System.out.println("Received packet.");
-                peer.parseMsg(packet);
+                peer.parseMessage(packet);
             }
             catch (IOException e) {
                 System.err.println("ERROR: Failed to receive packet.");

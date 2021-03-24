@@ -23,6 +23,7 @@ public class TestApp {
                     }
 
                     stub.backupFile(args[2], Integer.parseInt(args[3]));
+
                     break;
 
                 case "RESTORE":
@@ -65,7 +66,9 @@ public class TestApp {
                     usage();
                     System.exit(1);
             }
-        }catch (RemoteException | NotBoundException e) {
+        }
+
+        catch (RemoteException | NotBoundException e) {
             System.err.println("ERROR: Failed to connect to remote interface. \nAborting...");
         }
     }

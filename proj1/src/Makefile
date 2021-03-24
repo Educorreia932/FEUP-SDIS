@@ -1,4 +1,8 @@
+MAKEFLAGS += -j 4
+
 OUT_DIR =../out/production/proj1
+
+all: rmi peer1 peer2 backup
 
 build:
 	javac -d ../out/production/proj1 *.java
@@ -9,14 +13,14 @@ clean:
 	rm -rf ../filesystem
 
 rmi:
-	killall rmiregistry
+	killall --quiet rmiregistry || true
 	rmiregistry -J-Djava.class.path=$(OUT_DIR)
 
 peer1:
-	java -cp $(OUT_DIR) Peer.Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+	java -cp $(OUT_DIR) peer.Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 peer2:
-	java -cp $(OUT_DIR) Peer.Peer 1.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+	java -cp $(OUT_DIR) peer.Peer 1.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
 	java -cp $(OUT_DIR) TestApp 1 BACKUP carlota.jpg 2

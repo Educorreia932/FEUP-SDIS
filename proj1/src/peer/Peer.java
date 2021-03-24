@@ -34,7 +34,9 @@ public class Peer implements RMI {
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.getRegistry();
             registry.bind(peer_obj.access_point, RMI_stub);
-        } catch (RemoteException | AlreadyBoundException e) {
+        }
+
+        catch (RemoteException | AlreadyBoundException e) {
             System.err.println("ERROR: Failed to bind peer object in the registry.\n Aborting...");
             System.exit(-1);
         }
@@ -52,12 +54,14 @@ public class Peer implements RMI {
             mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
             mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
         }
+
         catch (NumberFormatException e) {
             System.err.println("ERROR: Bad input. Check number arguments.");
             usage();
             System.exit(-1);
         }
-        // set up storage
+
+        // Set up storage
         storage = new Storage(id);
         storage.makeDirectories();
     }
@@ -66,9 +70,9 @@ public class Peer implements RMI {
     public void backupFile(String file_pathname, int replication_degree) {
         File file = storage.getFile(file_pathname, id);
 
-        if (file == null) {
+        if (file == null)
             System.err.println("ERROR: File to backup does not exist. Aborting.");
-        }
+
         else {
             String file_id = storage.addBackedUpFile(file.toPath());
             new Backup(this.id, version, file, file_id, replication_degree, mdb_channel).run();
@@ -95,7 +99,7 @@ public class Peer implements RMI {
         System.out.println("Not implemented yet");
     }
 
-    public void parseMsg(DatagramPacket packet){
+    public void parseMessage(DatagramPacket packet){
         byte[] packet_data = packet.getData();  // get bytes
         byte[] header = Message.getHeader(packet_data); // get header
         byte[] body = Message.getBody(packet_data, header.length); // get body
