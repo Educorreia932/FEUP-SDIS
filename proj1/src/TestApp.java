@@ -12,6 +12,9 @@ public class TestApp {
         }
 
         try {
+            // TODO: Remove sleep
+            Thread.sleep(500);
+
             Registry registry = LocateRegistry.getRegistry(); // default port: 1099
             RMI stub = (RMI) registry.lookup(args[0]);
 
@@ -66,10 +69,13 @@ public class TestApp {
                     usage();
                     System.exit(1);
             }
+
+            System.out.println("TestApp - Finished with success");
         }
 
-        catch (RemoteException | NotBoundException e) {
+        catch (RemoteException | NotBoundException | InterruptedException e) {
             System.err.println("ERROR: Failed to connect to remote interface. \nAborting...");
+            e.printStackTrace();
         }
     }
 

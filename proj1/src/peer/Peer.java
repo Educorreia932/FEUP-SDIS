@@ -22,13 +22,14 @@ public class Peer implements RMI {
     private MDR_Channel mdr_channel;
     private final Storage storage;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         if (args.length != 9) {
             usage();
             System.exit(1);
         }
 
         Peer peer_obj = new Peer(args); // create peer
+
         try { //RMI
             RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer_obj, 0);
             // Bind the remote object's stub in the registry
@@ -110,9 +111,11 @@ public class Peer implements RMI {
         String[] split_header = header_str.split(" "); // split header by spaces
 
         int sender_id = Integer.parseInt(split_header[2]);
-        if(sender_id == id) return; // ignore msg from itself
 
-        storage.execute(split_header, body); // execute msg
+        if (sender_id == id)
+            return; // ignore msg from itself
+
+        //storage.execute(split_header, body); // Execute msg
     }
 
     private static void usage() {
