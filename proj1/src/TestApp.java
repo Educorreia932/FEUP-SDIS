@@ -1,4 +1,4 @@
-import Peer.RMI;
+import peer.RMI;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;

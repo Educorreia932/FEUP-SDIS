@@ -1,6 +1,6 @@
 package channels;
 
-import Peer.Peer;
+import peer.Peer;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

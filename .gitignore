@@ -1,4 +1,9 @@
 proj1/.idea
-proj1/out
+out
 proj1/filesystem
 proj1/proj1.iml
+
+.idea/
+
+g02.iml
+*.class

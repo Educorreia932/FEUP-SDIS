@@ -1,6 +1,6 @@
 package channels;
 
-import Peer.Peer;
+import peer.Peer;
 
 public class MDR_Channel extends Channel{
     public MDR_Channel(String host, int port, Peer peer) {
