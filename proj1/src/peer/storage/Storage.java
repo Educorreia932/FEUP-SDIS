@@ -14,71 +14,16 @@ import java.util.List;
 
 public class Storage {
     private HashMap<String, String> backedup_files;
-    private List<Chunk> chunks;
+    public List<Chunk> chunks;
     private int peer_id;
-    private final String FILESYSTEM_FOLDER = "../filesystem/peer";
-    private final String BACKUP_FOLDER = "/backup/";
+    public final String FILESYSTEM_FOLDER = "../filesystem/peer";
+    public final String BACKUP_FOLDER = "/backup/";
 
 
     public Storage(int peer_id) {
         backedup_files = new HashMap<>();
         this.chunks = new ArrayList<>();
         this.peer_id = peer_id;
-    }
-
-
-    /**
-     * Stores chunk
-     * @param file_id Id of file to be stored
-     * @param chunk_no Number of chunk to be stored
-     * @param body Body of chunk to be stored
-     * @return true if chunk is stored, false otherwise
-     */
-    public boolean putChunk(String file_id, int chunk_no, byte[] body) {
-        System.out.println("Received PUTCHUNK message.");
-        Chunk chunk = new Chunk(file_id, chunk_no, body);
-
-        if (chunks.contains(chunk)) // Chunk already stored
-            return true;
-
-        if (storeChunk(chunk)) {
-            chunks.add(chunk); // Add to list of stored chunks
-            System.out.println("Stored chunk.");
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Stores chunk in peer's backup folder.
-     * @param chunk to be stored
-     * @return True if successful, false otherwise
-     */
-    public boolean storeChunk(Chunk chunk) {
-        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFileId();
-        File directory = new File(path);
-
-        if (!directory.exists())     // Create folder for file
-            if (!directory.mkdirs()) {
-                System.err.println("ERROR: Failed to create directory to store chunk.");
-                return false;
-            }
-
-        String file_path = path + '/' + chunk.getChunkNo();
-
-        try {
-            FileOutputStream stream = new FileOutputStream(file_path);
-            stream.write(chunk.getBody());
-
-            return true;
-        }
-
-        catch (IOException e) {
-            System.err.println("ERROR: Couldn't write chunk to file.");
-        }
-
-        return false;
     }
 
     /**

@@ -16,7 +16,7 @@ public class Backup implements Runnable {
     private final int initiator_peer;
     private final MDB_Channel mdb_channel;
 
-    public Backup(Integer peer_id, String version, File file, String file_id,
+    public Backup(int peer_id, String version, File file, String file_id,
                   int replication_degree, MDB_Channel mdb_channel) {
         this.initiator_peer = peer_id;
         this.version = version;

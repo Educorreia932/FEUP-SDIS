@@ -3,6 +3,7 @@ package peer;
 import peer.storage.Storage;
 import channels.*;
 import messages.*;
+import peer.storage.StorageThread;
 import subprotocols.*;
 
 import java.io.File;
@@ -111,27 +112,8 @@ public class Peer implements RMI {
         if (sender_id == id)
             return; // ignore msg from itself
 
-        //String version = header[0];
-        String msg_type = split_header[1];
-        //String sender_id = header[2];
-        String file_id = split_header[3];
-        int chunkno, replication_degree;
+        new StorageThread(split_header, body, mc_channel, storage, id).run();
 
-        switch (msg_type) {
-            case "PUTCHUNK":
-                chunkno = Integer.parseInt(split_header[4]);
-                //replication_degree = Integer.parseInt(header[5]);
-                if(storage.putChunk(file_id, chunkno, body))
-                    System.out.println("SEND STORED");
-                break;
-            case "STORED":
-            case "GETCHUNK":
-            case "CHUNK":
-            case "REMOVED":
-            case "DELETE":
-                System.out.println("Not implemented");
-                break;
-        }
     }
 
     private static void usage() {
