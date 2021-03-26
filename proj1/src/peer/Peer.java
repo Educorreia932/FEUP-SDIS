@@ -3,10 +3,9 @@ package peer;
 import peer.storage.Storage;
 import channels.*;
 import messages.*;
-import sub_protocols.*;
+import subprotocols.*;
 
 import java.io.File;
-import java.net.DatagramPacket;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -22,7 +21,7 @@ public class Peer implements RMI {
     private MDR_Channel mdr_channel;
     private final Storage storage;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         if (args.length != 9) {
             usage();
             System.exit(1);
@@ -100,12 +99,9 @@ public class Peer implements RMI {
         System.out.println("Not implemented yet");
     }
 
-    public void parseMessage(DatagramPacket packet){
-        byte[] packet_data = packet.getData();  // get bytes
-        byte[] header = Message.getHeader(packet_data); // get header
-        byte[] body = Message.getBody(packet_data, header.length); // get body
-
-        // TODO: size is not 64kb??
+    public void parseMessage(byte[] message) {
+        byte[] header = Message.getHeader(message); // get header
+        byte[] body = Message.getBody(message, header.length); // get body
 
         String header_str = new String(header);
         String[] split_header = header_str.split(" "); // split header by spaces
@@ -115,7 +111,27 @@ public class Peer implements RMI {
         if (sender_id == id)
             return; // ignore msg from itself
 
-        //storage.execute(split_header, body); // Execute msg
+        //String version = header[0];
+        String msg_type = split_header[1];
+        //String sender_id = header[2];
+        String file_id = split_header[3];
+        int chunkno, replication_degree;
+
+        switch (msg_type) {
+            case "PUTCHUNK":
+                chunkno = Integer.parseInt(split_header[4]);
+                //replication_degree = Integer.parseInt(header[5]);
+                if(storage.putChunk(file_id, chunkno, body))
+                    System.out.println("SEND STORED");
+                break;
+            case "STORED":
+            case "GETCHUNK":
+            case "CHUNK":
+            case "REMOVED":
+            case "DELETE":
+                System.out.println("Not implemented");
+                break;
+        }
     }
 
     private static void usage() {

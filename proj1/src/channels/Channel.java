@@ -7,17 +7,17 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-public class Channel implements Runnable{
+public class Channel implements Runnable {
     private boolean running;
     private String host;
     private int port;
     private Peer peer;
     private MulticastSocket socket;
     private InetAddress group;
-    private byte[] buf = new byte[256];
-    private final static int MAX_SIZE = 70000; // TODO: what is the best value
+    private final static int MAX_SIZE = 66000;
+    private byte[] buf = new byte[MAX_SIZE];
 
-    public Channel(String host, int port, Peer peer){
+    public Channel(String host, int port, Peer peer) {
         this.host = host;
         this.port = port;
         this.peer = peer;
@@ -25,16 +25,17 @@ public class Channel implements Runnable{
 
     @Override
     public void run() {
-        if(start() != 0 ) return;
+        if (start() != 0) return;
         running = true;
 
-        while(running){
+        while (running) {
             try {
-                DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                DatagramPacket packet = new DatagramPacket(buf, MAX_SIZE);
                 socket.receive(packet); // Receive packet
-                System.out.println("Received packet.");
-                peer.parseMessage(packet);
+                System.out.println("Received packet with " + packet.getData().length + " bytes.");
+                peer.parseMessage(packet.getData());
             }
+
             catch (IOException e) {
                 System.err.println("ERROR: Failed to receive packet.");
             }
@@ -45,30 +46,35 @@ public class Channel implements Runnable{
         running = false;
         try {
             socket.leaveGroup(group);
-        } catch (IOException e) {
-                System.err.println("ERROR: Failed to leave group.");
+        }
+        catch (IOException e) {
+            System.err.println("ERROR: Failed to leave group.");
         }
         socket.close();
     }
 
-    private int start(){
+    private int start() {
         try {
-            socket= new MulticastSocket(port);
+            socket = new MulticastSocket(port);
             group = InetAddress.getByName(host);
             socket.joinGroup(group);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println("ERROR: Failed to start channel.");
             return -1;
         }
+
         return 0;
     }
 
-    public void send(byte[] buffer){
-        DatagramPacket packet
-                = new DatagramPacket(buffer, buffer.length, group, port);
+    public void send(byte[] buffer) {
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
+
         try {
             socket.send(packet);
-        } catch (IOException e) {
+        }
+
+        catch (IOException e) {
             System.err.println("ERROR: Failed to send packet.");
         }
     }

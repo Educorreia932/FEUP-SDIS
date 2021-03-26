@@ -12,75 +12,86 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Storage{
+public class Storage {
     private HashMap<String, String> backedup_files;
     private List<Chunk> chunks;
     private int peer_id;
     private final String FILESYSTEM_FOLDER = "../filesystem/peer";
     private final String BACKUP_FOLDER = "/backup/";
 
-    public Storage(int peer_id){
-        backedup_files = new HashMap<String, String>();
+
+    public Storage(int peer_id) {
+        backedup_files = new HashMap<>();
         this.chunks = new ArrayList<>();
         this.peer_id = peer_id;
     }
 
-    public void execute(String[] header, byte[] body){
-        //String version = header[0];
-        String msg_type = header[1];
-        //String sender_id = header[2];
-        String file_id = header[3];
-        int chunkno, replication_degree;
 
-        switch(msg_type){
-            case "PUTCHUNK":
-                chunkno = Integer.parseInt(header[4]);
-                //replication_degree = Integer.parseInt(header[5]);
-                putChunk(file_id, chunkno, body);
-                break;
-            case "STORED":
-            case "GETCHUNK":
-            case "CHUNK":
-            case "REMOVED":
-            case "DELETE":
-                System.out.println("Not implemented");
-                break;
+    /**
+     * Stores chunk
+     * @param file_id Id of file to be stored
+     * @param chunk_no Number of chunk to be stored
+     * @param body Body of chunk to be stored
+     * @return true if chunk is stored, false otherwise
+     */
+    public boolean putChunk(String file_id, int chunk_no, byte[] body) {
+        System.out.println("Received PUTCHUNK message.");
+        Chunk chunk = new Chunk(file_id, chunk_no, body);
+
+        if (chunks.contains(chunk)) // Chunk already stored
+            return true;
+
+        if (storeChunk(chunk)) {
+            chunks.add(chunk); // Add to list of stored chunks
+            System.out.println("Stored chunk.");
+            return true;
         }
+
+        return false;
     }
 
-    private void putChunk(String file_id, int chunkno, byte[] body){
-        System.out.println("Saving chunk...");
-        Chunk chunk = new Chunk(file_id, chunkno, body);
-        chunks.add(chunk);
-        storeChunk(chunk);
-    }
-
-    public void storeChunk(Chunk chunk){
+    /**
+     * Stores chunk in peer's backup folder.
+     * @param chunk to be stored
+     * @return True if successful, false otherwise
+     */
+    public boolean storeChunk(Chunk chunk) {
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFileId();
         File directory = new File(path);
-        if(!directory.exists())     // Create folder for file
-            directory.mkdirs();
+
+        if (!directory.exists())     // Create folder for file
+            if (!directory.mkdirs()) {
+                System.err.println("ERROR: Failed to create directory to store chunk.");
+                return false;
+            }
 
         String file_path = path + '/' + chunk.getChunkNo();
+
         try {
             FileOutputStream stream = new FileOutputStream(file_path);
             stream.write(chunk.getBody());
-        } catch (IOException e) {
+
+            return true;
+        }
+
+        catch (IOException e) {
             System.err.println("ERROR: Couldn't write chunk to file.");
         }
-        System.out.println("Stored chunk.");
+
+        return false;
     }
 
     /**
      * Returns file with path equal to file_pathname
+     *
      * @param file_pathname
      * @param peer_id
      * @return File
      */
-    public File getFile(String file_pathname, int peer_id){
+    public File getFile(String file_pathname, int peer_id) {
         String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
         File file = new File(path);
-        if (file.exists() && !file.isDirectory()){
+        if (file.exists() && !file.isDirectory()) {
             return file;
         }
         return null;
@@ -89,14 +100,15 @@ public class Storage{
     /**
      * Creates directories for peer with id: peer_id
      */
-    public void makeDirectories(){
+    public void makeDirectories() {
         File directory = new File(FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER);
-        if(!directory.exists())
+        if (!directory.exists())
             directory.mkdirs();
     }
 
     /**
      * Hashes string passed in argument
+     *
      * @param toBeHashed
      * @return
      */
@@ -106,7 +118,8 @@ public class Storage{
         try {
             digest = MessageDigest.getInstance("SHA-256");
 
-        } catch (NoSuchAlgorithmException e) {
+        }
+        catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         byte[] encoded_hash = digest.digest(
@@ -114,7 +127,7 @@ public class Storage{
         return bytesToHex(encoded_hash);
     }
 
-    public String addBackedUpFile(Path path){
+    public String addBackedUpFile(Path path) {
         String file_id = getMetadataString(path);
         String hashed_id = hash(file_id);
         backedup_files.put(path.toString(), hashed_id);
@@ -123,17 +136,19 @@ public class Storage{
 
     /**
      * Returns a string that contains metadata about a file
+     *
      * @param path
      * @return
      */
-    private String getMetadataString(Path path){
+    private String getMetadataString(Path path) {
         String modified_time = "", owner = "",
                 name = path.toString();
         // Get metadata
         try {
             modified_time = Files.getLastModifiedTime(path).toString();
             owner = Files.getOwner(path).getName();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
         return name + modified_time + owner;
@@ -147,7 +162,7 @@ public class Storage{
         StringBuilder hexString = new StringBuilder(2 * hash.length);
         for (int i = 0; i < hash.length; i++) {
             String hex = Integer.toHexString(0xff & hash[i]);
-            if(hex.length() == 1) {
+            if (hex.length() == 1) {
                 hexString.append('0');
             }
             hexString.append(hex);

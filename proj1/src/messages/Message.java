@@ -1,6 +1,7 @@
 package messages;
 
 public abstract class Message {
+    public static final int MAX_CHUNK_SIZE = 64000;
     protected String version;
     protected String type;
     protected int sender_id;
@@ -19,7 +20,7 @@ public abstract class Message {
     }
 
     public static byte[] getHeader(byte[] msg){
-        int header_len = getCRLFIndex(msg);
+        int header_len = getCRLFIndex(msg) + 5;
         byte[] header = new byte[header_len];
 
         System.arraycopy(msg, 0, header, 0, header_len);
@@ -28,12 +29,10 @@ public abstract class Message {
 
     public static byte[] getBody(byte[] msg, int header_len){
         int body_len = msg.length - header_len;
-
         if (body_len == 0)
             return null;
 
         byte[] body = new byte[body_len];
-
         System.arraycopy(msg, header_len, body, 0, body_len);
 
         return body;
@@ -49,6 +48,7 @@ public abstract class Message {
                     return i;
             }
         }
+
         return -1;
     }
 }
