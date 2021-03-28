@@ -15,25 +15,26 @@ public abstract class Message {
         this.file_id = file_id;
     }
 
-    public String getHeader(String content) {
+    protected String getHeader(String content) {
         return String.format("%s %s %d %s %s %s %s", version, type, sender_id, file_id, content, CRLF, CRLF);
     }
 
-    public static byte[] getHeader(byte[] msg){
-        int header_len = getCRLFIndex(msg) + 5;
-        byte[] header = new byte[header_len];
+    public static byte[] getHeaderBytes(byte[] message){
+        int header_length = getCRLFIndex(message) + 5;
+        byte[] header = new byte[header_length];
 
-        System.arraycopy(msg, 0, header, 0, header_len);
+        System.arraycopy(message, 0, header, 0, header_length);
         return header;
     }
 
-    public static byte[] getBody(byte[] msg, int header_len){
-        int body_len = msg.length - header_len;
-        if (body_len == 0)
+    public static byte[] getBodyBytes(byte[] message_bytes, int header_length){
+        int body_length = message_bytes.length - header_length;
+
+        if (body_length == 0)
             return null;
 
-        byte[] body = new byte[body_len];
-        System.arraycopy(msg, header_len, body, 0, body_len);
+        byte[] body = new byte[body_length];
+        System.arraycopy(message_bytes, header_length, body, 0, body_length);
 
         return body;
     }

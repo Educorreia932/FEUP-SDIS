@@ -25,14 +25,16 @@ public class Channel implements Runnable {
 
     @Override
     public void run() {
-        if (start() != 0) return;
+        if (start() != 0)
+            return;
+
         running = true;
 
         while (running) {
             try {
-                DatagramPacket packet = new DatagramPacket(buf, MAX_SIZE);
+                DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet); // Receive packet
-                System.out.println("Received packet with " + packet.getData().length + " bytes.");
+
                 peer.parseMessage(packet.getData());
             }
 
@@ -44,12 +46,15 @@ public class Channel implements Runnable {
 
     public void stop() {
         running = false;
+
         try {
             socket.leaveGroup(group);
         }
+
         catch (IOException e) {
             System.err.println("ERROR: Failed to leave group.");
         }
+
         socket.close();
     }
 
@@ -59,6 +64,7 @@ public class Channel implements Runnable {
             group = InetAddress.getByName(host);
             socket.joinGroup(group);
         }
+
         catch (IOException e) {
             System.err.println("ERROR: Failed to start channel.");
             return -1;

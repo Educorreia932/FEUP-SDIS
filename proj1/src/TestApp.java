@@ -15,10 +15,13 @@ public class TestApp {
             // TODO: Remove sleep
             Thread.sleep(500);
 
-            Registry registry = LocateRegistry.getRegistry(); // default port: 1099
-            RMI stub = (RMI) registry.lookup(args[0]);
+            Registry registry = LocateRegistry.getRegistry(); // Default port: 1099
+            String peer_ap = args[0];
+            RMI stub = (RMI) registry.lookup(peer_ap);
 
-            switch (args[1]) {
+            String operation = args[1];
+
+            switch (operation) {
                 case "BACKUP":
                     if (args.length < 4) {
                         usage();
@@ -69,8 +72,6 @@ public class TestApp {
                     usage();
                     System.exit(1);
             }
-
-            System.out.println("TestApp - Finished with success");
         }
 
         catch (RemoteException | NotBoundException | InterruptedException e) {

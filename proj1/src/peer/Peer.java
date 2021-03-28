@@ -30,8 +30,10 @@ public class Peer implements RMI {
 
         Peer peer_obj = new Peer(args); // create peer
 
-        try { //RMI
+        try {
+            //RMI
             RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer_obj, 0);
+
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.getRegistry();
             registry.bind(peer_obj.access_point, RMI_stub);
@@ -100,20 +102,22 @@ public class Peer implements RMI {
         System.out.println("Not implemented yet");
     }
 
-    public void parseMessage(byte[] message) {
-        byte[] header = Message.getHeader(message); // get header
-        byte[] body = Message.getBody(message, header.length); // get body
+    public void parseMessage(byte[] message_bytes) {
+        byte[] header = Message.getHeaderBytes(message_bytes);
+        byte[] body = Message.getBodyBytes(message_bytes, header.length);
 
-        String header_str = new String(header);
-        String[] split_header = header_str.split(" "); // split header by spaces
+        String header_string = new String(header);
+        String[] header_fields = header_string.split(" "); // Split header by spaces
 
-        int sender_id = Integer.parseInt(split_header[2]);
+        int sender_id = Integer.parseInt(header_fields[2]);
 
+        // Ignore message from itself
         if (sender_id == id)
-            return; // ignore msg from itself
+            return;
 
-        new StorageThread(split_header, body, mc_channel, storage, id).run();
+        // System.out.println("< Peer " + id + " received " + (message_bytes.length) + " bytes\n");
 
+        new StorageThread(header_fields, body, mc_channel, storage, id).run();
     }
 
     private static void usage() {

@@ -19,7 +19,6 @@ public class Storage {
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
 
-
     public Storage(int peer_id) {
         backedup_files = new HashMap<>();
         this.chunks = new ArrayList<>();
@@ -36,9 +35,11 @@ public class Storage {
     public File getFile(String file_pathname, int peer_id) {
         String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
         File file = new File(path);
+
         if (file.exists() && !file.isDirectory()) {
             return file;
         }
+
         return null;
     }
 
@@ -47,28 +48,31 @@ public class Storage {
      */
     public void makeDirectories() {
         File directory = new File(FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER);
+
         if (!directory.exists())
             directory.mkdirs();
     }
 
     /**
-     * Hashes string passed in argument
+     * Enscrypts file data string using SHA-256
      *
      * @param toBeHashed
-     * @return
+     * @return File identifier
      */
-    public String hash(String toBeHashed) {
+    private static String hash(String toBeHashed) {
         MessageDigest digest = null;
-        // SHA-256
+
         try {
             digest = MessageDigest.getInstance("SHA-256");
-
         }
+
         catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
         byte[] encoded_hash = digest.digest(
                 toBeHashed.getBytes(StandardCharsets.UTF_8));
+
         return bytesToHex(encoded_hash);
     }
 
@@ -82,20 +86,22 @@ public class Storage {
     /**
      * Returns a string that contains metadata about a file
      *
-     * @param path
-     * @return
+     * @param path Path to file
+     * @return String containg the named, modified time and owner of the file
      */
     private String getMetadataString(Path path) {
-        String modified_time = "", owner = "",
-                name = path.toString();
+        String modified_time = "", owner = "", name = path.toString();
+
         // Get metadata
         try {
             modified_time = Files.getLastModifiedTime(path).toString();
             owner = Files.getOwner(path).getName();
         }
+
         catch (IOException e) {
             e.printStackTrace();
         }
+
         return name + modified_time + owner;
     }
 
@@ -105,13 +111,16 @@ public class Storage {
      */
     private static String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
-            if (hex.length() == 1) {
+
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xFF & b);
+
+            if (hex.length() == 1)
                 hexString.append('0');
-            }
+
             hexString.append(hex);
         }
+
         return hexString.toString();
     }
 }

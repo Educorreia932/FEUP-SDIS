@@ -13,7 +13,7 @@ public class StorageThread implements Runnable{
     private Storage storage;
     int peer_id;
 
-    public StorageThread(String[] header, byte[] body, MC_Channel mc_channel, Storage storage, int peer_id){
+    public StorageThread(String[] header, byte[] body, MC_Channel mc_channel, Storage storage, int peer_id) {
         this.header = header;
         this.body = body;
         this.mc_channel = mc_channel;
@@ -35,8 +35,6 @@ public class StorageThread implements Runnable{
             case "PUTCHUNK":
                 chunk_no = Integer.parseInt(header[4]);
                 //replication_degree = Integer.parseInt(header[5]);
-                if(putChunk(file_id, chunk_no, body))
-                    System.out.println("SEND STORED");
 
                 break;
             case "STORED":
