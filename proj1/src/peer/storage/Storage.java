@@ -13,16 +13,74 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Storage {
-    private HashMap<String, String> backedup_files;
+    private HashMap<String, String> backed_up_files;
     public List<Chunk> chunks;
     private int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
 
     public Storage(int peer_id) {
-        backedup_files = new HashMap<>();
+        backed_up_files = new HashMap<>();
         this.chunks = new ArrayList<>();
         this.peer_id = peer_id;
+    }
+
+    public int getPeer_id() {
+        return peer_id;
+    }
+
+    /**
+     * Stores chunk
+     * @param file_id ID of file to be stored
+     * @param chunk_no Number of chunk to be stored
+     * @param body Body of chunk to be stored
+     * @return True if chunk is stored, false otherwise
+     */
+    public boolean putChunk(String file_id, int chunk_no, byte[] body) {
+        System.out.println("Received PUTCHUNK message.");
+        Chunk chunk = new Chunk(file_id, chunk_no, body);
+
+        if (chunks.contains(chunk)) // Chunk already stored
+            return true;
+
+        if (storeChunk(chunk)) {
+            chunks.add(chunk); // Add to list of stored chunks
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Stores chunk in peer's backup folder.
+     * @param chunk to be stored
+     * @return True if successful, false otherwise
+     */
+    private boolean storeChunk(Chunk chunk) {
+        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFileId();
+        File directory = new File(path);
+
+        if (!directory.exists())     // Create folder for file
+            if (!directory.mkdirs()) {
+                System.err.println("ERROR: Failed to create directory to store chunk.");
+                return false;
+            }
+
+        String file_path = path + '/' + chunk.getChunkNo();
+
+        try {
+            FileOutputStream stream = new FileOutputStream(file_path);
+            stream.write(chunk.getBody());
+
+            return true;
+        }
+
+        catch (IOException e) {
+            System.err.println("ERROR: Couldn't write chunk to file.");
+        }
+
+        return false;
     }
 
     /**
@@ -69,8 +127,7 @@ public class Storage {
             e.printStackTrace();
         }
 
-        byte[] encoded_hash = digest.digest(
-                toBeHashed.getBytes(StandardCharsets.UTF_8));
+        byte[] encoded_hash = digest.digest(toBeHashed.getBytes(StandardCharsets.UTF_8));
 
         return bytesToHex(encoded_hash);
     }
@@ -78,7 +135,7 @@ public class Storage {
     public String addBackedUpFile(Path path) {
         String file_id = getMetadataString(path);
         String hashed_id = hash(file_id);
-        backedup_files.put(path.toString(), hashed_id);
+        backed_up_files.put(path.toString(), hashed_id);
         return hashed_id;
     }
 

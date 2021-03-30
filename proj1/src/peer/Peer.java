@@ -2,8 +2,6 @@ package peer;
 
 import peer.storage.Storage;
 import channels.*;
-import messages.*;
-import peer.storage.StorageThread;
 import subprotocols.*;
 
 import java.io.File;
@@ -20,7 +18,7 @@ public class Peer implements RMI {
     private MC_Channel communication_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
-    private final Storage storage;
+    public final Storage storage;
     private int i = 0;
 
     public static void main(String[] args) {

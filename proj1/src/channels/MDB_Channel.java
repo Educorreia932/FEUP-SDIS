@@ -2,8 +2,6 @@ package channels;
 
 import messages.Message;
 import peer.Peer;
-import peer.storage.StorageThread;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 
@@ -50,8 +48,11 @@ public class MDB_Channel extends Channel {
         if (sender_id == peer.id)
             return;
 
-        System.out.println("< Peer " + peer.id + " received " + (message_bytes.length) + " bytes");
+        String file_id = header_fields[3];
+        int chunk_no = Integer.parseInt(header_fields[4]);
 
-        // new StorageThread(header_fields, body, communication_channel, storage, id).run();
+        System.out.printf("< Peer %d | %d bytes | Chunk number %d\n", peer.id, message_bytes.length, chunk_no);
+
+        new Thread(() -> peer.storage.putChunk(file_id, chunk_no, body)).start();
     }
 }

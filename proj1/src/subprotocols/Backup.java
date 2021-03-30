@@ -51,9 +51,6 @@ public class Backup implements Runnable {
 
                 // Send message to MDB multicast data channel
                 channel.send(message_bytes);
-
-                // System.out.println("> Peer " + initiator_peer + " sent " + message_bytes.length + " bytes");
-
                 chunk_no++; // Increment chunk number
             }
         }
