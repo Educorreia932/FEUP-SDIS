@@ -19,7 +19,6 @@ public class Peer implements RMI {
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
     public final Storage storage;
-    private int i = 0;
 
     public static void main(String[] args) {
         if (args.length != 9) {

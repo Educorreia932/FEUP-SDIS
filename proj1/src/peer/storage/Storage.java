@@ -37,7 +37,6 @@ public class Storage {
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body) {
-        System.out.println("Received PUTCHUNK message.");
         Chunk chunk = new Chunk(file_id, chunk_no, body);
 
         if (chunks.contains(chunk)) // Chunk already stored
@@ -49,7 +48,7 @@ public class Storage {
             return true;
         }
 
-        return false;
+        return  false;
     }
 
     /**

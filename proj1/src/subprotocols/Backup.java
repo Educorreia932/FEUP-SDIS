@@ -49,13 +49,19 @@ public class Backup implements Runnable {
                 byte[] message_bytes = message.getBytes(chunk);
                 message_bytes = Arrays.copyOf(message_bytes, read_bytes);
 
+//                System.out.printf("> Peer %d | %d bytes | Chunk number %d\n", initiator_peer, message_bytes.length, chunk_no);
+
                 // Send message to MDB multicast data channel
+                Thread.sleep(100);
                 channel.send(message_bytes);
                 chunk_no++; // Increment chunk number
             }
         }
 
         catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
