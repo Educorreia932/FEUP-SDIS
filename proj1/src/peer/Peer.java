@@ -17,10 +17,11 @@ public class Peer implements RMI {
     private int id;
     private String version;
     private String access_point;
-    private MC_Channel mc_channel;
-    private MDB_Channel mdb_channel;
-    private MDR_Channel mdr_channel;
+    private MC_Channel communication_channel;
+    private MDB_Channel backup_channel;
+    private MDR_Channel restore_channel;
     private final Storage storage;
+    private int i = 0;
 
     public static void main(String[] args) {
         if (args.length != 9) {
@@ -28,15 +29,15 @@ public class Peer implements RMI {
             System.exit(1);
         }
 
-        Peer peer_obj = new Peer(args); // create peer
+        Peer peer = new Peer(args); // create peer
 
         try {
             //RMI
-            RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer_obj, 0);
+            RMI RMI_stub = (RMI) UnicastRemoteObject.exportObject(peer, 0);
 
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind(peer_obj.access_point, RMI_stub);
+            registry.bind(peer.access_point, RMI_stub);
         }
 
         catch (RemoteException | AlreadyBoundException e) {
@@ -45,7 +46,7 @@ public class Peer implements RMI {
         }
 
         // Start listening on channels
-        peer_obj.mdb_channel.run();
+        peer.backup_channel.run();
     }
 
     public Peer(String[] args) {
@@ -53,9 +54,9 @@ public class Peer implements RMI {
             version = args[0];
             id = Integer.parseInt(args[1]);
             access_point = args[2];
-            mc_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
-            mdb_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
-            mdr_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
+            communication_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
+            backup_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
+            restore_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
         }
 
         catch (NumberFormatException e) {
@@ -78,7 +79,7 @@ public class Peer implements RMI {
 
         else {
             String file_id = storage.addBackedUpFile(file.toPath());
-            new Backup(this.id, version, file, file_id, replication_degree, mdb_channel).run();
+            new Backup(this.id, version, file, file_id, replication_degree, backup_channel).run();
         }
     }
 
@@ -111,13 +112,17 @@ public class Peer implements RMI {
 
         int sender_id = Integer.parseInt(header_fields[2]);
 
+        // System.out.print("i " + i + " Peer ID " + id + "\n");
+
+        i += 1;
+
         // Ignore message from itself
         if (sender_id == id)
             return;
 
-        System.out.println("< Peer " + id + " received " + (message_bytes.length) + " bytes\n");
+        System.out.println("< Peer " + id + " received " + (message_bytes.length) + " bytes");
 
-        new StorageThread(header_fields, body, mc_channel, storage, id).run();
+        new StorageThread(header_fields, body, communication_channel, storage, id).run();
     }
 
     private static void usage() {

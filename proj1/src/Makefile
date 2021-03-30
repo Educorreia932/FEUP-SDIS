@@ -1,6 +1,6 @@
 MAKEFLAGS += -j 4
 
-OUT_DIR =../out/production/proj1
+OUT_DIR = ../out/production/proj1
 
 all: rmi peer1 peer2 backup
 

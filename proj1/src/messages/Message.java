@@ -1,7 +1,6 @@
 package messages;
 
 public abstract class Message {
-    public static final int MAX_CHUNK_SIZE = 64000;
     protected String version;
     protected String type;
     protected int sender_id;
@@ -40,8 +39,8 @@ public abstract class Message {
     }
 
     private static int getCRLFIndex(byte[] msg){
-        byte CR = (byte)0xD;
-        byte LF = (byte)0xA;
+        byte CR = (byte) 0xD;
+        byte LF = (byte) 0xA;
 
         for (int i = 0; i < msg.length; i++){
             if(msg[i] == CR){

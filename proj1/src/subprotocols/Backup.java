@@ -1,7 +1,6 @@
 package subprotocols;
 
 import channels.MDB_Channel;
-import messages.Message;
 import messages.PutChunkMessage;
 import peer.storage.Chunk;
 
@@ -16,15 +15,15 @@ public class Backup implements Runnable {
     private final String version;
     private final int replication_degree;
     private final int initiator_peer;
-    private final MDB_Channel mdb_channel;
+    private final MDB_Channel channel;
 
-    public Backup(int peer_id, String version, File file, String file_id, int replication_degree, MDB_Channel mdb_channel) {
+    public Backup(int peer_id, String version, File file, String file_id, int replication_degree, MDB_Channel channel) {
         this.initiator_peer = peer_id;
         this.version = version;
         this.file = file;
         this.file_id = file_id;
         this.replication_degree = replication_degree;
-        this.mdb_channel = mdb_channel;
+        this.channel = channel;
     }
 
     @Override
@@ -51,11 +50,9 @@ public class Backup implements Runnable {
                 message_bytes = Arrays.copyOf(message_bytes, read_bytes);
 
                 // Send message to MDB multicast data channel
-                mdb_channel.send(message_bytes);
+                channel.send(message_bytes);
 
                 // System.out.println("> Peer " + initiator_peer + " sent " + message_bytes.length + " bytes");
-                //System.out.println(chunk_no);
-                // System.out.println();
 
                 chunk_no++; // Increment chunk number
             }
