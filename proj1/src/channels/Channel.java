@@ -35,7 +35,11 @@ public class Channel implements Runnable {
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet); // Receive packet
 
-                peer.parseMessage(packet.getData());
+                int packetLength = packet.getLength();
+                byte[] packetData = new byte[packetLength];
+                System.arraycopy(packet.getData(), 0, packetData, 0, packetLength);
+
+                peer.parseMessage(packetData);
             }
 
             catch (IOException e) {

@@ -36,9 +36,8 @@ public class Storage {
         String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
         File file = new File(path);
 
-        if (file.exists() && !file.isDirectory()) {
+        if (file.exists() && !file.isDirectory())
             return file;
-        }
 
         return null;
     }

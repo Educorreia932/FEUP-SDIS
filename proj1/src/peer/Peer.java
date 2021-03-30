@@ -115,7 +115,7 @@ public class Peer implements RMI {
         if (sender_id == id)
             return;
 
-        // System.out.println("< Peer " + id + " received " + (message_bytes.length) + " bytes\n");
+        System.out.println("< Peer " + id + " received " + (message_bytes.length) + " bytes\n");
 
         new StorageThread(header_fields, body, mc_channel, storage, id).run();
     }
