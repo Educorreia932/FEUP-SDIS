@@ -6,7 +6,7 @@ all: rmi peer1 peer2 backup
 
 build:
 	javac -d ../out/production/proj1 *.java
-	javac -d ../out/production/proj1 Peer/*.java
+	javac -d ../out/production/proj1 peer/*.java
 
 clean:
 	rm -rf $(OUT_DIR)
@@ -24,3 +24,6 @@ peer2:
 
 backup:
 	java -cp $(OUT_DIR) TestApp 1 BACKUP carlota.jpg 2
+
+rmi2:
+	rmiregistry -J-Djava.class.path=$(OUT_DIR)

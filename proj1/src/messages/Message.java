@@ -26,14 +26,14 @@ public abstract class Message {
         return header;
     }
 
-    public static byte[] getBodyBytes(byte[] message_bytes, int header_length){
-        int body_length = message_bytes.length - header_length;
+    public static byte[] getBodyBytes(byte[] message_bytes, int msg_len, int header_len){
+        int body_length = msg_len - header_len;
 
         if (body_length == 0)
             return null;
 
         byte[] body = new byte[body_length];
-        System.arraycopy(message_bytes, header_length, body, 0, body_length);
+        System.arraycopy(message_bytes, header_len, body, 0, body_length);
 
         return body;
     }

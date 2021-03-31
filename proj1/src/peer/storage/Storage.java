@@ -25,10 +25,6 @@ public class Storage {
         this.peer_id = peer_id;
     }
 
-    public int getPeer_id() {
-        return peer_id;
-    }
-
     /**
      * Stores chunk
      * @param file_id ID of file to be stored
@@ -85,8 +81,8 @@ public class Storage {
     /**
      * Returns file with path equal to file_pathname
      *
-     * @param file_pathname
-     * @param peer_id
+     * @param file_pathname Path to file
+     * @param peer_id Id of peer
      * @return File
      */
     public File getFile(String file_pathname, int peer_id) {
@@ -112,7 +108,7 @@ public class Storage {
     /**
      * Enscrypts file data string using SHA-256
      *
-     * @param toBeHashed
+     * @param toBeHashed String to be hashed
      * @return File identifier
      */
     private static String hash(String toBeHashed) {
@@ -131,6 +127,11 @@ public class Storage {
         return bytesToHex(encoded_hash);
     }
 
+    /**
+     * Adds file to map of backed files
+     * @param path File's path
+     * @return Return hashed id of file
+     */
     public String addBackedUpFile(Path path) {
         String file_id = getMetadataString(path);
         String hashed_id = hash(file_id);

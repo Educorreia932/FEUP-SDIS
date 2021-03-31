@@ -10,6 +10,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Peer implements RMI {
     public int id;
@@ -18,6 +20,7 @@ public class Peer implements RMI {
     private MC_Channel communication_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
+    private ExecutorService pool;
     public final Storage storage;
 
     public static void main(String[] args) {
@@ -42,8 +45,9 @@ public class Peer implements RMI {
             System.exit(-1);
         }
 
+        peer.pool = Executors.newCachedThreadPool();
         // Start listening on channels
-        peer.backup_channel.run();
+        peer.pool.execute(peer.backup_channel);;
     }
 
     public Peer(String[] args) {
@@ -76,7 +80,8 @@ public class Peer implements RMI {
 
         else {
             String file_id = storage.addBackedUpFile(file.toPath());
-            new Backup(this.id, version, file, file_id, replication_degree, backup_channel).run();
+            Runnable task = new Backup(this.id, version, file, file_id, replication_degree, backup_channel);
+            pool.execute(task);
         }
     }
 

@@ -27,14 +27,7 @@ public class Backup implements Runnable {
     }
 
     @Override
-    public void run() {
-        sendPutChunkMessage();
-    }
-
-    /**
-     * Reads file and splits it into chunks to send PUTCHUNK messages
-     */
-    private void sendPutChunkMessage() {
+    public void run(){
         int chunk_no = 0;
         byte[] chunk = new byte[Chunk.MAX_CHUNK_SIZE];
         PutChunkMessage message = new PutChunkMessage(version, initiator_peer, file_id, replication_degree, chunk_no);
@@ -46,10 +39,9 @@ public class Backup implements Runnable {
             // Read chunk from file
             while ((read_bytes = inputStream.read(chunk)) != -1) {
                 message.setChunkNo(chunk_no);
-                byte[] message_bytes = message.getBytes(chunk);
-                message_bytes = Arrays.copyOf(message_bytes, read_bytes);
+                byte[] message_bytes = message.getBytes(chunk, read_bytes);
 
-//                System.out.printf("> Peer %d | %d bytes | Chunk number %d\n", initiator_peer, message_bytes.length, chunk_no);
+                System.out.printf("> Peer %d | %d bytes | Chunk number %d\n", initiator_peer, message_bytes.length, chunk_no);
 
                 // Send message to MDB multicast data channel
                 Thread.sleep(100);
@@ -58,10 +50,7 @@ public class Backup implements Runnable {
             }
         }
 
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (InterruptedException e) {
+        catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }

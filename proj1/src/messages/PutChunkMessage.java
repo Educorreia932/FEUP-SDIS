@@ -30,13 +30,13 @@ public class PutChunkMessage extends Message {
      * @param body to include in byte array
      * @return Message byte array
      */
-    public byte[] getBytes(byte[] body) {
+    public byte[] getBytes(byte[] body, int body_len) {
         byte[] header = toString().getBytes(StandardCharsets.UTF_8);
-        byte[] message = new byte[header.length + body.length];
+        byte[] message = new byte[header.length + body_len];
 
         // Copy contents to msg array
         System.arraycopy(header, 0, message, 0, header.length);
-        System.arraycopy(body, 0, message, header.length, body.length);
+        System.arraycopy(body, 0, message, header.length, body_len);
 
         return message;
     }
