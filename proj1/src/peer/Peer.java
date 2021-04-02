@@ -71,6 +71,22 @@ public class Peer implements RMI {
         storage.makeDirectories();
     }
 
+    public void storeChunk(String[] header, byte[] body, int msg_len){
+        // Parse fields
+        int sender_id = Integer.parseInt(header[2]),
+                chunk_no = Integer.parseInt(header[4]);
+        String file_id = header[3];
+
+        // Ignore message from itself
+        if (sender_id == id) return;
+
+        System.out.printf("< Peer %d | %d bytes | Chunk number %d\n", id, msg_len, chunk_no);
+
+        storage.putChunk(file_id, chunk_no, body);
+
+        // TODO: Send stored msg
+    }
+
     @Override
     public void backupFile(String file_pathname, int replication_degree) {
         File file = storage.getFile(file_pathname, id);
