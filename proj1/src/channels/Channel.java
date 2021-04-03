@@ -85,5 +85,5 @@ public abstract class Channel implements Runnable {
         }
     }
 
-    public abstract void parseMessage(byte[] msg, int msg_len);
+    protected abstract void parseMessage(byte[] msg, int msg_len);
 }

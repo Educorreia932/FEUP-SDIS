@@ -1,5 +1,7 @@
 package messages;
 
+import java.nio.charset.StandardCharsets;
+
 public abstract class Message {
     protected String version;
     protected String type;
@@ -50,5 +52,9 @@ public abstract class Message {
         }
 
         return -1;
+    }
+
+    public byte[] getBytes(byte[] body, int body_len){
+        return toString().getBytes(StandardCharsets.UTF_8);
     }
 }

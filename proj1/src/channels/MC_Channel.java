@@ -18,7 +18,7 @@ public class MC_Channel extends Channel {
     }
 
     @Override
-    public void parseMessage(byte[] msg, int msg_len) {
+    protected void parseMessage(byte[] msg, int msg_len) {
         byte[] header = Message.getHeaderBytes(msg);
 
         String header_string = new String(header);
@@ -45,8 +45,10 @@ public class MC_Channel extends Channel {
                 break;
 
             case "GETCHUNK":
-                System.out.printf("> Peer %d | STORED \n", peer.id);
+                System.out.printf("> Peer %d | GETCHUNK \n", peer.id);
                 peer.getChunk(header_fields);
+
+                break;
 
         }
     }

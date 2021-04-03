@@ -9,7 +9,8 @@ public class MDB_Channel extends Channel implements Runnable{
         super(host, port, peer);
     }
 
-    public void parseMessage(byte[] msg, int msg_len) {
+    @Override
+    protected void parseMessage(byte[] msg, int msg_len) {
         byte[] header = Message.getHeaderBytes(msg);
         byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
@@ -20,8 +21,11 @@ public class MDB_Channel extends Channel implements Runnable{
         int sender_id = Integer.parseInt(header_fields[2]);
         if (sender_id == peer.id) return;
 
-        peer.storeChunk(header_fields, body, msg_len);
+        String type = header_fields[1];
+        if(type.equals("PUTCHUNK")){
+            String chunk_no = header_fields[4];
+            System.out.printf("> Peer %d | %d bytes | PUTCHUNK %s\n", peer.id, msg_len, chunk_no);
+            peer.putChunk(header_fields, body, msg_len);
+        }
     }
-
-
 }

@@ -1,5 +1,6 @@
 package channels;
 
+import messages.Message;
 import peer.Peer;
 
 public class MDR_Channel extends Channel {
@@ -8,7 +9,20 @@ public class MDR_Channel extends Channel {
     }
 
     @Override
-    public void parseMessage(byte[] msg, int msg_len) {
+    protected void parseMessage(byte[] msg, int msg_len) {
+        byte[] header = Message.getHeaderBytes(msg);
 
+        String header_string = new String(header);
+        String[] header_fields = header_string.split(" "); // Split header by spaces
+
+        // Ignore message from itself
+        int sender_id = Integer.parseInt(header_fields[2]);
+        if (sender_id == peer.id) return;
+
+        String type = header_fields[1];
+        if(type.equals("CHUNK")){
+            System.out.printf("> Peer %d | CHUNK \n", peer.id);
+            // TODO: Write chunk to file
+        }
     }
 }

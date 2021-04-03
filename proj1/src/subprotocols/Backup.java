@@ -31,7 +31,7 @@ public class Backup implements Runnable {
     }
 
     @Override
-    public void run(){
+    public void run(){ // TODO: Empty chunk
         boolean send_new_chunk = true;
         int chunk_no = 0, read_bytes, tries = 1, received = 0, sleep_time;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;

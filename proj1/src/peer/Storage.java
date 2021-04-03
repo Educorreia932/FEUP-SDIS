@@ -1,5 +1,8 @@
 package peer;
 
+import messages.StoredMessage;
+
+import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,20 +24,6 @@ public class Storage {
     }
 
     /**
-     * Retrieves chunk if stored.
-     * @param file_id
-     * @param chunk_no
-     * @return
-     */
-    public int getChunk(String file_id, int chunk_no) {
-
-        if (isStoredChunk(file_id, chunk_no)){
-            System.out.println("Reading chunk");
-        }
-        return -1;
-    }
-
-    /**
      * Stores chunk in peer's backup folder.
      * @param file_id ID of file to be stored
      * @param chunk_no Number of chunk to be stored
@@ -43,7 +32,8 @@ public class Storage {
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body) {
 
-        if (isStoredChunk(file_id, chunk_no)) // Chunk already stored
+        File chunk = getStoredChunk(file_id, chunk_no);
+        if (chunk != null) // Chunk already stored
             return true;
 
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id;
@@ -54,9 +44,8 @@ public class Storage {
                 System.err.println("ERROR: Failed to create directory to store chunk.");
                 return false;
             }
-
         try {
-            FileOutputStream stream = new FileOutputStream(path);
+            FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no);
             stream.write(body);
             return true;
         }
@@ -68,16 +57,19 @@ public class Storage {
     }
 
     /**
-     * Checks if a chunk is already stored
+     * Returns file chunk
      * @param file_id ID of file
      * @param chunk_no Number of chunk
-     * @return Returns true if chunk is already stored. False otherwise.
+     * @return Returns the if chunk its already stored. Null otherwise.
      */
-    public boolean isStoredChunk(String file_id, int chunk_no){
+    public File getStoredChunk(String file_id, int chunk_no){
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
         File file = new File(path);
 
-        return file.exists() && !file.isDirectory();
+        if (file.exists() && !file.isDirectory())
+            return file;
+
+        return null;
     }
 
     /**
@@ -85,7 +77,7 @@ public class Storage {
      *
      * @param file_pathname Path to file
      * @param peer_id Id of peer
-     * @return File
+     * @return File if it exists, null otherwise
      */
     public File getFile(String file_pathname, int peer_id) {
         String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
