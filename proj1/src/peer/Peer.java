@@ -1,7 +1,6 @@
 package peer;
 
 import messages.StoredMessage;
-import peer.storage.Storage;
 import channels.*;
 import subprotocols.*;
 
@@ -12,6 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,19 +74,35 @@ public class Peer implements RMI {
         storage.makeDirectories();
     }
 
+    public void getChunk(String[] header){
+        String file_id = header[3];
+        int chunk_no = Integer.parseInt(header[4]);
+
+        storage.getChunk(file_id, chunk_no);
+    }
+
+    /**
+     * Stores chunk received from the MDB channel
+     * @param header Header of the message received
+     * @param body Chunk to store
+     * @param msg_len Length of the message received
+     */
     public void storeChunk(String[] header, byte[] body, int msg_len){
         // Parse fields
-        int sender_id = Integer.parseInt(header[2]),
-                chunk_no = Integer.parseInt(header[4]);
+        int chunk_no = Integer.parseInt(header[4]);
         String version = header[1],
                 file_id = header[3];
 
-        // Ignore message from itself
-        if (sender_id == id) return;
-
         System.out.printf("> Peer %d | %d bytes | PUTCHUNK %d\n", id, msg_len, chunk_no);
 
-        if(storage.putChunk(file_id, chunk_no, body)){ // If stored was successful send msg
+        // If store was successful send STORED
+        if(storage.putChunk(file_id, chunk_no, body)){
+            try { // Sleep (0-400ms)
+                Thread.sleep(new Random().nextInt(400));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // Send STORED msg
             StoredMessage store_msg = new StoredMessage(version, id, file_id, chunk_no);
             control_channel.send(store_msg.toString().getBytes(StandardCharsets.UTF_8));
             System.out.printf("< Peer %d | STORED %d\n", id, chunk_no);
@@ -101,16 +117,22 @@ public class Peer implements RMI {
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            String file_id = storage.addBackedUpFile(file.toPath());
-            Runnable task = new Backup(this.id, version, file, file_id, replication_degree,
+            String file_id = storage.addBackedUpFile(file.toPath()); // TODO: add only if back up was successful
+            Runnable task = new Backup(id, version, file, file_id, replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);
         }
     }
 
     @Override
-    public void restoreFile(String file_pathname) {
-        System.out.println("Not implemented yet");
+    public void restoreFile(String file_path) {
+        String file_id = storage.getFileId(file_path);
+        if(file_id == null){
+            System.out.println("File to restore needs to be backed up first. Aborting...");
+            return;
+        }
+        Runnable task = new Restore(id, version, file_id, restore_channel, control_channel);
+        pool.execute(task);
     }
 
     @Override

@@ -27,4 +27,7 @@ peer3:
 	java -cp $(OUT_DIR) peer.Peer 1.0 3 3 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
-	java -cp $(OUT_DIR) TestApp 1 BACKUP carlota.jpg 2
+	java -cp $(OUT_DIR) TestApp 1 BACKUP carlota.jpg 1
+
+restore:
+	java -cp $(OUT_DIR) TestApp 1 RESTORE carlota.jpg

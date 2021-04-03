@@ -16,6 +16,10 @@ public class MDB_Channel extends Channel implements Runnable{
         String header_string = new String(header);
         String[] header_fields = header_string.split(" "); // Split header by spaces
 
+        // Ignore message from itself
+        int sender_id = Integer.parseInt(header_fields[2]);
+        if (sender_id == peer.id) return;
+
         peer.storeChunk(header_fields, body, msg_len);
     }
 

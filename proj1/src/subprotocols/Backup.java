@@ -3,12 +3,10 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDB_Channel;
 import messages.PutChunkMessage;
-import peer.storage.Chunk;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Random;
 
 public class Backup implements Runnable {
     private final File file;
@@ -19,7 +17,7 @@ public class Backup implements Runnable {
     private final MDB_Channel mdb_channel;
     private final MC_Channel mc_channel;
     private final short MAX_TRIES = 5;
-    private Random random;
+    private static final int MAX_CHUNK_SIZE = 64000;
 
     public Backup(int peer_id, String version, File file, String file_id, int replication_degree,
                   MDB_Channel mdb_channel, MC_Channel mc_channel) {
@@ -30,14 +28,13 @@ public class Backup implements Runnable {
         this.replication_degree = replication_degree;
         this.mdb_channel = mdb_channel;
         this.mc_channel = mc_channel;
-        random = new Random();
     }
 
     @Override
     public void run(){
         boolean send_new_chunk = true;
         int chunk_no = 0, read_bytes, tries = 1, received = 0, sleep_time;
-        byte[] chunk = new byte[Chunk.MAX_CHUNK_SIZE], message_bytes = null;
+        byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
         PutChunkMessage message = new PutChunkMessage(version, initiator_peer, file_id, replication_degree, chunk_no);
 
         try {
@@ -55,9 +52,7 @@ public class Backup implements Runnable {
                 // Send message to MDB multicast data channel
                 mdb_channel.send(message_bytes);
                 System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer, message_bytes.length, chunk_no);
-
-                sleep_time = random.nextInt(400);
-                Thread.sleep(sleep_time);
+                Thread.sleep(500);
 
                 // Access shared resource
                 mc_channel.sem.acquire(); // acquire sem to access shared resource

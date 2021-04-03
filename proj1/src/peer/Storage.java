@@ -1,28 +1,37 @@
-package peer.storage;
+package peer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class Storage {
     private HashMap<String, String> backed_up_files;
-    public List<Chunk> chunks;
     private int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
+    public static int MAX_CHUNK_SIZE = 64000;
 
     public Storage(int peer_id) {
         backed_up_files = new HashMap<>();
-        this.chunks = new ArrayList<>();
         this.peer_id = peer_id;
+    }
+
+    /**
+     * Retrieves chunk if stored.
+     * @param file_id
+     * @param chunk_no
+     * @return
+     */
+    public int getChunk(String file_id, int chunk_no) {
+
+        if (isStoredChunk(file_id, chunk_no)){
+            System.out.println("Reading chunk");
+        }
+        return -1;
     }
 
     /**
@@ -33,12 +42,11 @@ public class Storage {
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body) {
-        Chunk chunk = new Chunk(file_id, chunk_no, body);
 
-        if (chunks.contains(chunk)) // Chunk already stored
+        if (isStoredChunk(file_id, chunk_no)) // Chunk already stored
             return true;
 
-        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFileId();
+        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id;
         File directory = new File(path);
 
         if (!directory.exists())     // Create folder for file
@@ -47,20 +55,29 @@ public class Storage {
                 return false;
             }
 
-        String file_path = path + '/' + chunk.getChunkNo();
-
         try {
-            FileOutputStream stream = new FileOutputStream(file_path);
-            stream.write(chunk.getBody());
-            chunks.add(chunk); // Add to list of stored chunks
+            FileOutputStream stream = new FileOutputStream(path);
+            stream.write(body);
             return true;
         }
-
         catch (IOException e) {
             System.err.println("ERROR: Couldn't write chunk to file.");
         }
 
         return false;
+    }
+
+    /**
+     * Checks if a chunk is already stored
+     * @param file_id ID of file
+     * @param chunk_no Number of chunk
+     * @return Returns true if chunk is already stored. False otherwise.
+     */
+    public boolean isStoredChunk(String file_id, int chunk_no){
+        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
+        File file = new File(path);
+
+        return file.exists() && !file.isDirectory();
     }
 
     /**
@@ -110,6 +127,16 @@ public class Storage {
         byte[] encoded_hash = digest.digest(toBeHashed.getBytes(StandardCharsets.UTF_8));
 
         return bytesToHex(encoded_hash);
+    }
+
+    /**
+     * Returns file_id for the backed up file name
+     * @param file_name Name of file
+     * @return File ID
+     */
+    public String getFileId(String file_name){
+        String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
+        return backed_up_files.get(file_path);
     }
 
     /**

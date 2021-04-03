@@ -35,7 +35,7 @@ public class MC_Channel extends Channel {
             case "STORED":
                 try {
                     System.out.printf("> Peer %d | STORED \n", peer.id);
-                    // Access shared resource
+                    // Increment shared resource
                     sem.acquire();
                     stored_msgs_received++;
                     sem.release();
@@ -43,6 +43,11 @@ public class MC_Channel extends Channel {
                     e.printStackTrace();
                 }
                 break;
+
+            case "GETCHUNK":
+                System.out.printf("> Peer %d | STORED \n", peer.id);
+                peer.getChunk(header_fields);
+
         }
     }
 }
