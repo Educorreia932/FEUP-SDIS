@@ -1,10 +1,12 @@
 package peer;
 
+import messages.StoredMessage;
 import peer.storage.Storage;
 import channels.*;
 import subprotocols.*;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -17,7 +19,7 @@ public class Peer implements RMI {
     public int id;
     private String version;
     private String access_point;
-    private MC_Channel communication_channel;
+    private MC_Channel control_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
     private ExecutorService pool;
@@ -47,7 +49,8 @@ public class Peer implements RMI {
 
         peer.pool = Executors.newCachedThreadPool();
         // Start listening on channels
-        peer.pool.execute(peer.backup_channel);;
+        peer.pool.execute(peer.backup_channel);
+        peer.pool.execute(peer.control_channel);
     }
 
     public Peer(String[] args) {
@@ -55,7 +58,7 @@ public class Peer implements RMI {
             version = args[0];
             id = Integer.parseInt(args[1]);
             access_point = args[2];
-            communication_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
+            control_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
             backup_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
             restore_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
         }
@@ -75,16 +78,19 @@ public class Peer implements RMI {
         // Parse fields
         int sender_id = Integer.parseInt(header[2]),
                 chunk_no = Integer.parseInt(header[4]);
-        String file_id = header[3];
+        String version = header[1],
+                file_id = header[3];
 
         // Ignore message from itself
         if (sender_id == id) return;
 
-        System.out.printf("< Peer %d | %d bytes | Chunk number %d\n", id, msg_len, chunk_no);
+        System.out.printf("> Peer %d | %d bytes | PUTCHUNK %d\n", id, msg_len, chunk_no);
 
-        storage.putChunk(file_id, chunk_no, body);
-
-        // TODO: Send stored msg
+        if(storage.putChunk(file_id, chunk_no, body)){ // If stored was successful send msg
+            StoredMessage store_msg = new StoredMessage(version, id, file_id, chunk_no);
+            control_channel.send(store_msg.toString().getBytes(StandardCharsets.UTF_8));
+            System.out.printf("< Peer %d | STORED %d\n", id, chunk_no);
+        }
     }
 
     @Override
@@ -96,7 +102,8 @@ public class Peer implements RMI {
 
         else {
             String file_id = storage.addBackedUpFile(file.toPath());
-            Runnable task = new Backup(this.id, version, file, file_id, replication_degree, backup_channel);
+            Runnable task = new Backup(this.id, version, file, file_id, replication_degree,
+                    backup_channel, control_channel);
             pool.execute(task);
         }
     }

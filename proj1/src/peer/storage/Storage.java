@@ -26,7 +26,7 @@ public class Storage {
     }
 
     /**
-     * Stores chunk
+     * Stores chunk in peer's backup folder.
      * @param file_id ID of file to be stored
      * @param chunk_no Number of chunk to be stored
      * @param body Body of chunk to be stored
@@ -38,21 +38,6 @@ public class Storage {
         if (chunks.contains(chunk)) // Chunk already stored
             return true;
 
-        if (storeChunk(chunk)) {
-            chunks.add(chunk); // Add to list of stored chunks
-
-            return true;
-        }
-
-        return  false;
-    }
-
-    /**
-     * Stores chunk in peer's backup folder.
-     * @param chunk to be stored
-     * @return True if successful, false otherwise
-     */
-    private boolean storeChunk(Chunk chunk) {
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFileId();
         File directory = new File(path);
 
@@ -67,7 +52,7 @@ public class Storage {
         try {
             FileOutputStream stream = new FileOutputStream(file_path);
             stream.write(chunk.getBody());
-
+            chunks.add(chunk); // Add to list of stored chunks
             return true;
         }
 
