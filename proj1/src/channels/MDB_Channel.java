@@ -1,5 +1,6 @@
 package channels;
 
+import messages.Fields;
 import messages.Message;
 import peer.Peer;
 
@@ -18,7 +19,7 @@ public class MDB_Channel extends Channel implements Runnable{
         String[] header_fields = header_string.split(" "); // Split header by spaces
 
         // Ignore message from itself
-        int sender_id = Integer.parseInt(header_fields[2]);
+        int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
         if (sender_id == peer.id) return;
 
         String type = header_fields[1];

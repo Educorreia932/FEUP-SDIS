@@ -1,6 +1,7 @@
 package peer;
 
 import messages.ChunkMessage;
+import messages.Fields;
 import messages.StoredMessage;
 import channels.*;
 import subprotocols.*;
@@ -78,8 +79,8 @@ public class Peer implements RMI {
     }
 
     public void getChunk(String[] header){
-        String file_id = header[3];
-        int chunk_no = Integer.parseInt(header[4]);
+        String file_id = header[Fields.FILE_ID.ordinal()];
+        int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         File chunk = storage.getStoredChunk(file_id, chunk_no);
 
         if(chunk == null) return; // Chunk is not stored
@@ -109,9 +110,9 @@ public class Peer implements RMI {
      */
     public void putChunk(String[] header, byte[] body, int msg_len){
         // Parse fields
-        int chunk_no = Integer.parseInt(header[4]);
-        String version = header[1],
-                file_id = header[3];
+        int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
+        String version = header[Fields.VERSION.ordinal()],
+                file_id = header[Fields.FILE_ID.ordinal()];
 
         // If store was successful send STORED
         if(storage.putChunk(file_id, chunk_no, body)){

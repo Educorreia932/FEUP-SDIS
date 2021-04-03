@@ -1,5 +1,6 @@
 package channels;
 
+import messages.Fields;
 import messages.Message;
 import peer.Peer;
 
@@ -25,8 +26,8 @@ public class MC_Channel extends Channel {
         String[] header_fields = header_string.split(" "); // Split header by spaces
 
         // Parse fields
-        String type = header_fields[1];
-        int sender_id = Integer.parseInt(header_fields[2]);
+        String type = header_fields[Fields.MSG_TYPE.ordinal()];
+        int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
 
         // Ignore message from itself
         if (sender_id == peer.id) return;
@@ -49,7 +50,6 @@ public class MC_Channel extends Channel {
                 peer.getChunk(header_fields);
 
                 break;
-
         }
     }
 }
