@@ -4,6 +4,7 @@ import messages.ChunkMessage;
 import messages.Fields;
 import messages.StoredMessage;
 import channels.*;
+import peer.storage.Storage;
 import subprotocols.*;
 
 import java.io.File;
@@ -136,7 +137,7 @@ public class Peer implements RMI {
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            String file_id = storage.addBackedUpFile(file.toPath()); // TODO: add only if back up was successful
+            String file_id = storage.addBackedUpFile(file.toPath()).getId(); // TODO: add only if back up was successful
             Runnable task = new Backup(id, version, file, file_id, replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);

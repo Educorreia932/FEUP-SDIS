@@ -1,8 +1,5 @@
-package peer;
+package peer.storage;
 
-import messages.StoredMessage;
-
-import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +10,7 @@ import java.util.HashMap;
 
 public class Storage {
     private HashMap<String, String> backed_up_files;
+    private HashMap<String, Integer> files_chunks;
     private int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
@@ -100,28 +98,6 @@ public class Storage {
     }
 
     /**
-     * Enscrypts file data string using SHA-256
-     *
-     * @param toBeHashed String to be hashed
-     * @return File identifier
-     */
-    private static String hash(String toBeHashed) {
-        MessageDigest digest = null;
-
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        }
-
-        catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        byte[] encoded_hash = digest.digest(toBeHashed.getBytes(StandardCharsets.UTF_8));
-
-        return bytesToHex(encoded_hash);
-    }
-
-    /**
      * Returns file_id for the backed up file name
      * @param file_name Name of file
      * @return File ID
@@ -134,53 +110,11 @@ public class Storage {
     /**
      * Adds file to map of backed files
      * @param path File's path
-     * @return Return hashed id of file
+     * @return Return BackedUpFile corresponding to path
      */
-    public String addBackedUpFile(Path path) {
-        String file_id = getMetadataString(path);
-        String hashed_id = hash(file_id);
-        backed_up_files.put(path.toString(), hashed_id);
-        return hashed_id;
-    }
-
-    /**
-     * Returns a string that contains metadata about a file
-     *
-     * @param path Path to file
-     * @return String containg the named, modified time and owner of the file
-     */
-    private String getMetadataString(Path path) {
-        String modified_time = "", owner = "", name = path.toString();
-
-        // Get metadata
-        try {
-            modified_time = Files.getLastModifiedTime(path).toString();
-            owner = Files.getOwner(path).getName();
-        }
-
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return name + modified_time + owner;
-    }
-
-    /**
-     * Convert from byte array to hexadecimal.
-     * From: https://www.baeldung.com/sha-256-hashing-java
-     */
-    private static String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xFF & b);
-
-            if (hex.length() == 1)
-                hexString.append('0');
-
-            hexString.append(hex);
-        }
-
-        return hexString.toString();
+    public BackedUpFile addBackedUpFile(Path path) {
+        BackedUpFile file = new BackedUpFile(path);
+        backed_up_files.put(path.toString(), file.getId());
+        return file;
     }
 }
