@@ -9,38 +9,40 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public class Backup implements Runnable {
+    private int number_of_chunks;
+    private int initiator_peer;
     private final File file;
-    private final String file_id;
     private final String version;
+    private PutChunkMessage message;
     private final int replication_degree;
-    private final int initiator_peer;
     private final MDB_Channel mdb_channel;
     private final MC_Channel mc_channel;
+
     private final short MAX_TRIES = 5;
     private static final int MAX_CHUNK_SIZE = 64000;
 
-    public Backup(int peer_id, String version, File file, String file_id, int replication_degree,
-                  MDB_Channel mdb_channel, MC_Channel mc_channel) {
-        this.initiator_peer = peer_id;
+    public Backup(int initiator_peer, String version, File file, String file_id, int number_of_chunks,
+                  int replication_degree, MDB_Channel mdb_channel, MC_Channel mc_channel) {
         this.version = version;
         this.file = file;
-        this.file_id = file_id;
+        this.initiator_peer = initiator_peer;
+        this.number_of_chunks = number_of_chunks;
         this.replication_degree = replication_degree;
         this.mdb_channel = mdb_channel;
         this.mc_channel = mc_channel;
+        message = new PutChunkMessage(version, initiator_peer, file_id, replication_degree, 0);
     }
 
     @Override
-    public void run(){ // TODO: Empty chunk
+    public void run(){
         boolean send_new_chunk = true;
-        int chunk_no = 0, read_bytes, tries = 1, received = 0, sleep_time;
+        int read_bytes, tries = 1, received = 0, sleep_time;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
-        PutChunkMessage message = new PutChunkMessage(version, initiator_peer, file_id, replication_degree, chunk_no);
 
         try {
             FileInputStream inputStream = new FileInputStream(file.getPath());
 
-            while (true){
+            for(int chunk_no = 0; chunk_no < number_of_chunks;){
                 message.setChunkNo(chunk_no);
 
                 if(send_new_chunk){ // Send new chunk => read from file
