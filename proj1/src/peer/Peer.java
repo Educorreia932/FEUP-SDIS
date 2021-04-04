@@ -101,7 +101,7 @@ public class Peer implements RMI {
 
         // Send CHUNK msg
         restore_channel.send(message_bytes);
-        System.out.printf("< Peer %d | CHUNK %d\n", id, chunk_no);
+        System.out.printf("< Peer %d | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
     }
 
     /**
@@ -147,12 +147,12 @@ public class Peer implements RMI {
 
     @Override
     public void restoreFile(String file_path) {
-        String file_id = storage.getFileId(file_path);
-        if(file_id == null){
+        BackedUpFile file = storage.getFileInfo(file_path);
+        if(file == null){
             System.out.println("File to restore needs to be backed up first. Aborting...");
             return;
         }
-        Runnable task = new Restore(id, version, file_id, restore_channel, control_channel);
+        Runnable task = new Restore(id, version, file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }
 

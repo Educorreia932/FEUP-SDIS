@@ -48,7 +48,7 @@ public class Backup implements Runnable {
                 if(send_new_chunk){ // Send new chunk => read from file
                     // Read from file
                     if((read_bytes = inputStream.read(chunk)) == -1)
-                        break; // Reached EOF
+                        read_bytes = 0; // Reached EOF TODO: Check size
                     message_bytes = message.getBytes(chunk, read_bytes);
                 }
                 // Send message to MDB multicast data channel

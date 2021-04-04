@@ -10,8 +10,10 @@ import java.security.NoSuchAlgorithmException;
 public class BackedUpFile {
     private String file_id;
     private int number_of_chunks;
+    private String path;
 
     public BackedUpFile(Path path){
+        this.path = path.toString();
         String id = getMetadataString(path);
         this.file_id = hash(id);
 
@@ -25,6 +27,10 @@ public class BackedUpFile {
     private int calculateNumOfChunks(Path path) throws IOException {
         long bytes = Files.size(path);
         return (int)(bytes / Storage.MAX_CHUNK_SIZE + 1);
+    }
+
+    public String getPath(){
+        return path;
     }
 
     public int getNumberOfChunks() {

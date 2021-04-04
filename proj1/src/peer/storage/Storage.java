@@ -1,16 +1,11 @@
 package peer.storage;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
 public class Storage {
-    private HashMap<String, String> backed_up_files;
-    private HashMap<String, Integer> files_chunks;
+    private HashMap<String, BackedUpFile> backed_up_files;
     private int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
@@ -44,7 +39,7 @@ public class Storage {
             }
         try {
             FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no);
-            stream.write(body);
+            if(body != null) stream.write(body); // Dont write if empty chunk
             return true;
         }
         catch (IOException e) {
@@ -98,11 +93,11 @@ public class Storage {
     }
 
     /**
-     * Returns file_id for the backed up file name
+     * Returns file information for the path given, if it was backed up
      * @param file_name Name of file
-     * @return File ID
+     * @return File information
      */
-    public String getFileId(String file_name){
+    public BackedUpFile getFileInfo(String file_name){
         String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
         return backed_up_files.get(file_path);
     }
@@ -114,7 +109,7 @@ public class Storage {
      */
     public BackedUpFile addBackedUpFile(Path path) {
         BackedUpFile file = new BackedUpFile(path);
-        backed_up_files.put(path.toString(), file.getId());
+        backed_up_files.put(path.toString(), file);
         return file;
     }
 }
