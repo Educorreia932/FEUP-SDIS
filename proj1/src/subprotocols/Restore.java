@@ -3,9 +3,7 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDR_Channel;
 import messages.GetChunkMessage;
-import peer.storage.Chunk;
-
-import java.nio.charset.StandardCharsets;
+import utils.Pair;
 
 public class Restore implements Runnable{
     private MC_Channel mc_channel;
@@ -40,17 +38,20 @@ public class Restore implements Runnable{
 
                 // Check if received chunk
                 mdr_channel.sem.acquire();
-                boolean hasChunk = mdr_channel.received_chunks.contains(new Chunk(chunk_no, file_id));
+                boolean hasChunk = mdr_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
                 mdr_channel.sem.release();
 
                 if(hasChunk){ // Chunk received => Skip to next chunk
                     chunk_no++;
                     message.setChunkNo(chunk_no);
                 }
-            } catch (InterruptedException e) {
+            }
+
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
         // TODO: Restore file
     }
 }

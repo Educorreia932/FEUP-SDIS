@@ -80,12 +80,12 @@ public class Peer implements RMI {
         storage.makeDirectories();
     }
 
-    public void getChunk(String[] header){
+    public void getChunk(String[] header) {
         String file_id = header[Fields.FILE_ID.ordinal()];
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         File chunk = storage.getStoredChunk(file_id, chunk_no);
 
-        if(chunk == null) return; // Chunk is not stored
+        if (chunk == null) return; // Chunk is not stored
 
         int read_bytes;
         byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
@@ -95,7 +95,9 @@ public class Peer implements RMI {
             FileInputStream inputStream = new FileInputStream(chunk.getPath());
             read_bytes = inputStream.read(body); // TODO: Check -1
             message_bytes = message.getBytes(body, read_bytes);
-        } catch (IOException e) {
+        }
+
+        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -106,23 +108,27 @@ public class Peer implements RMI {
 
     /**
      * Stores chunk received from the MDB channel
-     * @param header Header of the message received
-     * @param body Chunk to store
+     *
+     * @param header  Header of the message received
+     * @param body    Chunk to store
      * @param msg_len Length of the message received
      */
-    public void putChunk(String[] header, byte[] body, int msg_len){
+    public void putChunk(String[] header, byte[] body, int msg_len) {
         // Parse fields
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         String version = header[Fields.VERSION.ordinal()],
                 file_id = header[Fields.FILE_ID.ordinal()];
 
         // If store was successful send STORED
-        if(storage.putChunk(file_id, chunk_no, body)){
+        if (storage.putChunk(file_id, chunk_no, body)) {
             try { // Sleep (0-400ms)
                 Thread.sleep(new Random().nextInt(400));
-            } catch (InterruptedException e) {
+            }
+
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
             // Send STORED msg
             StoredMessage store_msg = new StoredMessage(version, id, file_id, chunk_no);
             control_channel.send(store_msg.getBytes(null, 0));
@@ -148,7 +154,7 @@ public class Peer implements RMI {
     @Override
     public void restoreFile(String file_path) {
         BackedUpFile file = storage.getFileInfo(file_path);
-        if(file == null){
+        if (file == null) {
             System.out.println("File to restore needs to be backed up first. Aborting...");
             return;
         }
@@ -159,7 +165,7 @@ public class Peer implements RMI {
     @Override
     public void deleteFile(String file_path) {
         BackedUpFile file = storage.getFileInfo(file_path);
-        if(file == null){
+        if (file == null) {
             System.out.println("File to delete needs to be backed up first. Aborting...");
             return;
         }

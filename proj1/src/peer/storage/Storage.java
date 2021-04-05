@@ -110,6 +110,7 @@ public class Storage {
     public BackedUpFile addBackedUpFile(Path path) {
         BackedUpFile file = new BackedUpFile(path);
         backed_up_files.put(path.toString(), file);
+
         return file;
     }
 
@@ -118,13 +119,15 @@ public class Storage {
         File folder = new File(path);
 
         if (folder.exists() && folder.isDirectory()){
-            //Empty directory
+            // Empty directory
             File[] chunks = folder.listFiles();
-            if(chunks != null){
+
+            if (chunks != null){
                 for(File chunk : chunks){
                     chunk.delete();
                 }
             }
+
             folder.delete(); // Delete folder
         }
     }

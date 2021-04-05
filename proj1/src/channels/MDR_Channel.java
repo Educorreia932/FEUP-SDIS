@@ -3,19 +3,18 @@ package channels;
 import messages.Fields;
 import messages.Message;
 import peer.Peer;
-import peer.storage.Chunk;
+import utils.Pair;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
 public class MDR_Channel extends Channel {
-    public Set<Chunk> received_chunks;
+    public HashMap<Pair<String, Integer>, byte[]> received_chunks;
     public final Semaphore sem;
 
     public MDR_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
-        received_chunks = new HashSet<>();
+        received_chunks = new HashMap<>();
         sem = new Semaphore(1);
     }
 
@@ -37,11 +36,11 @@ public class MDR_Channel extends Channel {
             String file_id = header_fields[Fields.FILE_ID.ordinal()];
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
-            System.out.printf("< Peer %d | %d bytes | CHUNK %d\n", peer, body.length, chunk_no);
+            System.out.printf("< Peer %d | %d bytes | CHUNK %d\n", peer.id, body.length, chunk_no);
 
             try { // Store chunk
                 sem.acquire();
-                received_chunks.add(new Chunk(chunk_no, body, file_id));
+                received_chunks.put(new Pair<>(file_id, chunk_no), body);
                 sem.release();
             } catch (InterruptedException e) {
                 e.printStackTrace();
