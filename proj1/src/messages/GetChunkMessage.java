@@ -14,4 +14,8 @@ public class GetChunkMessage extends Message {
 
         return super.getHeader(content);
     }
+
+    public void setChunkNo(int chunk_no) {
+        this.chunk_no = chunk_no;
+    }
 }

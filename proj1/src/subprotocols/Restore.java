@@ -23,22 +23,29 @@ public class Restore implements Runnable{
         this.version = version;
         this.initiator_peer = initiator_peer;
         this.number_of_chunks = number_of_chunks;
+        this.file_id = file_id;
         this.message = new GetChunkMessage(version, initiator_peer, file_id, 0);
     }
 
     @Override
     public void run() { //TODO: make sure all chunks are received
         for(int chunk_no = 0; chunk_no < number_of_chunks;){
+            // Send message
             byte[] message_bytes = message.getBytes(null, 0);
-
             mc_channel.send(message_bytes);
             System.out.printf("< Peer %d | %d bytes | GETCHUNK %d\n", initiator_peer, message_bytes.length, chunk_no);
 
             try {
                 Thread.sleep(500);
+
+                // Check if received chunk
                 mdr_channel.sem.acquire();
-                if(mdr_channel.received_chunks.contains(new Chunk(chunk_no, file_id))){ // TODO: Not working
+                boolean hasChunk = mdr_channel.received_chunks.contains(new Chunk(chunk_no, file_id));
+                mdr_channel.sem.release();
+
+                if(hasChunk){ // Chunk received => Skip to next chunk
                     chunk_no++;
+                    message.setChunkNo(chunk_no);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();

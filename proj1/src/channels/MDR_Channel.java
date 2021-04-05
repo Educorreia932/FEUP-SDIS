@@ -37,7 +37,7 @@ public class MDR_Channel extends Channel {
             String file_id = header_fields[Fields.FILE_ID.ordinal()];
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
-            System.out.printf("> Peer %d | %d bytes | CHUNK %d \n", peer.id, msg_len, chunk_no);
+            System.out.printf("< Peer %d | %d bytes | CHUNK %d\n", peer, body.length, chunk_no);
 
             try { // Store chunk
                 sem.acquire();
