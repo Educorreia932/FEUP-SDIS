@@ -113,7 +113,19 @@ public class Storage {
         return file;
     }
 
-    public void deleteFile(){
-        System.out.println("Deleting file");
+    public void deleteFile(String file_id){
+        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id;
+        File folder = new File(path);
+
+        if (folder.exists() && folder.isDirectory()){
+            //Empty directory
+            File[] chunks = folder.listFiles();
+            if(chunks != null){
+                for(File chunk : chunks){
+                    chunk.delete();
+                }
+            }
+            folder.delete();
+        }
     }
 }
