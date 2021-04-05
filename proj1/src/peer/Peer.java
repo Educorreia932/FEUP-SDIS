@@ -157,8 +157,15 @@ public class Peer implements RMI {
     }
 
     @Override
-    public void deleteFile(String file_pathname) {
-        System.out.println("Not implemented yet");
+    public void deleteFile(String file_path) {
+        BackedUpFile file = storage.getFileInfo(file_path);
+        if(file == null){
+            System.out.println("File to delete needs to be backed up first. Aborting...");
+            return;
+        }
+
+        Delete task = new Delete(version, id, file.getId(), control_channel);
+        pool.execute(task);
     }
 
     @Override

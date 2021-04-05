@@ -112,4 +112,8 @@ public class Storage {
         backed_up_files.put(path.toString(), file);
         return file;
     }
+
+    public void deleteFile(){
+        System.out.println("Deleting file");
+    }
 }

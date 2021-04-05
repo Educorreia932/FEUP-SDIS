@@ -31,3 +31,6 @@ backup:
 
 restore:
 	java -cp $(OUT_DIR) TestApp 1 RESTORE test.txt
+
+delete:
+	java -cp $(OUT_DIR) TestApp 1 DELETE test.txt

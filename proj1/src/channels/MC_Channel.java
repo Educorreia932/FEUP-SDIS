@@ -50,6 +50,11 @@ public class MC_Channel extends Channel {
                 peer.getChunk(header_fields);
 
                 break;
+
+            case "DELETE":
+                System.out.printf("> Peer %d | DELETE \n", peer.id);
+                peer.storage.deleteFile();
+                break;
         }
     }
 }
