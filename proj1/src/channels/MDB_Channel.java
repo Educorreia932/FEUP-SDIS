@@ -16,7 +16,7 @@ public class MDB_Channel extends Channel implements Runnable{
         byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
         String header_string = new String(header);
-        String[] header_fields = header_string.split(" "); // Split header by spaces
+        String[] header_fields = header_string.split("\\s+"); // Split header by spaces
 
         // Ignore message from itself
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);

@@ -23,7 +23,7 @@ public class MC_Channel extends Channel {
         byte[] header = Message.getHeaderBytes(msg);
 
         String header_string = new String(header);
-        String[] header_fields = header_string.split(" "); // Split header by spaces
+        String[] header_fields = header_string.split("\\s+"); // Split header by spaces
 
         // Parse fields
         String type = header_fields[Fields.MSG_TYPE.ordinal()];

@@ -25,7 +25,7 @@ public class MDR_Channel extends Channel {
         byte[] header = Message.getHeaderBytes(msg);
 
         String header_string = new String(header);
-        String[] header_fields = header_string.split(" "); // Split header by spaces
+        String[] header_fields = header_string.split("\\s+"); // Split header by spaces
 
         // Ignore message from itself
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);

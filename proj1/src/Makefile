@@ -32,4 +32,11 @@ restore:
 	java -cp $(OUT_DIR) TestApp 1 RESTORE oinc.jpg
 
 delete:
-	java -cp $(OUT_DIR) TestApp 1 DELETE test.txt
+	java -cp $(OUT_DIR) TestApp 1 DELETE oinc.jpg
+
+reclaim:
+	java -cp $(OUT_DIR) TestApp 1 RECLAIM 0
+
+state:
+	java -cp $(OUT_DIR) TestApp 1 STATE
+

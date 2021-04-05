@@ -20,7 +20,7 @@ public abstract class Message {
         return String.format("%s %s %d %s %s %s %s", version, type, sender_id, file_id, content, CRLF, CRLF);
     }
 
-    public static byte[] getHeaderBytes(byte[] message){
+    public static byte[] getHeaderBytes(byte[] message) {
         int header_length = getCRLFIndex(message) + 5;
         byte[] header = new byte[header_length];
 
@@ -28,7 +28,7 @@ public abstract class Message {
         return header;
     }
 
-    public static byte[] getBodyBytes(byte[] message_bytes, int msg_len, int header_len){
+    public static byte[] getBodyBytes(byte[] message_bytes, int msg_len, int header_len) {
         int body_length = msg_len - header_len;
 
         if (body_length == 0)
@@ -40,21 +40,19 @@ public abstract class Message {
         return body;
     }
 
-    private static int getCRLFIndex(byte[] msg){
+    private static int getCRLFIndex(byte[] msg) {
         byte CR = (byte) 0xD;
         byte LF = (byte) 0xA;
 
-        for (int i = 0; i < msg.length; i++){
-            if(msg[i] == CR){
-                if(msg[i+1] == LF)
+        for (int i = 0; i < msg.length; i++)
+            if (msg[i] == CR)
+                if (msg[i + 1] == LF)
                     return i;
-            }
-        }
 
         return -1;
     }
 
-    public byte[] getBytes(byte[] body, int body_len){
+    public byte[] getBytes(byte[] body, int body_len) {
         return toString().getBytes(StandardCharsets.UTF_8);
     }
 
