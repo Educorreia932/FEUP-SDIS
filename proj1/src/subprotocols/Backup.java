@@ -36,7 +36,7 @@ public class Backup implements Runnable {
     @Override
     public void run() {
         boolean send_new_chunk = true;
-        int read_bytes, tries = 1, received = 0, sleep_time;
+        int read_bytes, tries = 1, received = 0, sleep_time = 1000;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
 
         try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
@@ -52,7 +52,7 @@ public class Backup implements Runnable {
                 // Send message to MDB multicast data channel
                 mdb_channel.send(message_bytes);
                 System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer, message_bytes.length, chunk_no);
-                Thread.sleep(500);
+                Thread.sleep(sleep_time);
 
                 // Access shared resource
                 mc_channel.sem.acquire(); // acquire sem to access shared resource
@@ -63,19 +63,22 @@ public class Backup implements Runnable {
                 if (received < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
-                    if (tries >= MAX_TRIES)
+                    if (tries >= MAX_TRIES){
+                        System.out.println("Failed to achieve desired replication degree. Giving up...");
                         break; // Max tries => give up
+                    }
 
                     tries++; // Increment number of tries
+                    sleep_time *= 2; // Double sleep time
                 }
 
                 else {
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
+                    sleep_time = 1000; // Reset sleep time to 1s
                     send_new_chunk = true; // Send new chunk
                 }
             }
-
         }
 
         catch (IOException | InterruptedException e) {
