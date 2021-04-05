@@ -39,9 +39,7 @@ public class Backup implements Runnable {
         int read_bytes, tries = 1, received = 0, sleep_time;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
 
-        try {
-            FileInputStream inputStream = new FileInputStream(file.getPath());
-
+        try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
             for (int chunk_no = 0; chunk_no < number_of_chunks; ) {
                 message.setChunkNo(chunk_no);
 
@@ -77,7 +75,9 @@ public class Backup implements Runnable {
                     send_new_chunk = true; // Send new chunk
                 }
             }
+
         }
+
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }

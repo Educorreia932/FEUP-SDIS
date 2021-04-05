@@ -39,9 +39,7 @@ public class Storage {
                 return false;
             }
 
-        try {
-            FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no);
-
+        try (FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no)) {
             if(body != null)
                 stream.write(body); // Don't write if empty chunk
 
@@ -145,7 +143,8 @@ public class Storage {
     public void writeFile(String file_path, ArrayList<byte[]> chunks) {
 
         try {
-            FileOutputStream stream = new FileOutputStream("../filesystem/peer1/oinc.jpg");
+            FileOutputStream stream = new FileOutputStream(file_path);
+
             for (byte[] chunk : chunks)
                 stream.write(chunk);
 
