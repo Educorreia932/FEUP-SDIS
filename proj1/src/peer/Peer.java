@@ -85,13 +85,18 @@ public class Peer implements RMI {
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         File chunk = storage.getStoredChunk(file_id, chunk_no);
 
-        if (chunk == null) return; // Chunk is not stored
+        if (chunk == null) {
+            System.err.printf("Chunk %d is not stored \n", chunk_no);
+
+            return; // Chunk is not stored
+        }
 
         int read_bytes;
         byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
         ChunkMessage message = new ChunkMessage(version, id, file_id, chunk_no);
 
-        try { // Create Message
+        // Create Message
+        try {
             FileInputStream inputStream = new FileInputStream(chunk.getPath());
             read_bytes = inputStream.read(body); // TODO: Check -1
             message_bytes = message.getBytes(body, read_bytes);
@@ -154,21 +159,25 @@ public class Peer implements RMI {
     @Override
     public void restoreFile(String file_path) {
         BackedUpFile file = storage.getFileInfo(file_path);
+
         if (file == null) {
             System.out.println("File to restore needs to be backed up first. Aborting...");
             return;
         }
-        Runnable task = new Restore(id, version, file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+
+        Runnable task = new Restore(id, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }
 
     @Override
     public void deleteFile(String file_path) {
         BackedUpFile file = storage.getFileInfo(file_path);
+
         if (file == null) {
             System.out.println("File to delete needs to be backed up first. Aborting...");
             return;
         }
+
         storage.removeBackedUpFile(file); // Remove from backed up files
         Delete task = new Delete(version, id, file.getId(), control_channel);
         pool.execute(task);

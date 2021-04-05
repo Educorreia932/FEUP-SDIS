@@ -2,6 +2,7 @@ package peer.storage;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Storage {
@@ -24,8 +25,8 @@ public class Storage {
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body) {
-
         File chunk = getStoredChunk(file_id, chunk_no);
+
         if (chunk != null) // Chunk already stored
             return true;
 
@@ -37,11 +38,16 @@ public class Storage {
                 System.err.println("ERROR: Failed to create directory to store chunk.");
                 return false;
             }
+
         try {
             FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no);
-            if(body != null) stream.write(body); // Dont write if empty chunk
+
+            if(body != null)
+                stream.write(body); // Don't write if empty chunk
+
             return true;
         }
+
         catch (IOException e) {
             System.err.println("ERROR: Couldn't write chunk to file.");
         }
@@ -134,5 +140,20 @@ public class Storage {
 
     public void removeBackedUpFile(BackedUpFile file){
         backed_up_files.remove(file.getPath());
+    }
+
+    public void writeFile(String file_path, ArrayList<byte[]> chunks) {
+
+        try {
+            FileOutputStream stream = new FileOutputStream("../filesystem/peer1/oinc.jpg");
+            for (byte[] chunk : chunks)
+                stream.write(chunk);
+
+            stream.flush();
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

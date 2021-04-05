@@ -34,7 +34,7 @@ public class Backup implements Runnable {
     }
 
     @Override
-    public void run(){
+    public void run() {
         boolean send_new_chunk = true;
         int read_bytes, tries = 1, received = 0, sleep_time;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
@@ -42,12 +42,12 @@ public class Backup implements Runnable {
         try {
             FileInputStream inputStream = new FileInputStream(file.getPath());
 
-            for(int chunk_no = 0; chunk_no < number_of_chunks;){
+            for (int chunk_no = 0; chunk_no < number_of_chunks; ) {
                 message.setChunkNo(chunk_no);
 
-                if(send_new_chunk){ // Send new chunk => read from file
+                if (send_new_chunk) { // Send new chunk => read from file
                     // Read from file
-                    if((read_bytes = inputStream.read(chunk)) == -1)
+                    if ((read_bytes = inputStream.read(chunk)) == -1)
                         read_bytes = 0; // Reached EOF TODO: Check size
                     message_bytes = message.getBytes(chunk, read_bytes);
                 }
@@ -62,12 +62,16 @@ public class Backup implements Runnable {
                 mc_channel.stored_msgs_received = 0; // Reset count
                 mc_channel.sem.release(); // release sem
 
-                if(received < replication_degree){
+                if (received < replication_degree) {
                     send_new_chunk = false; // Resend chunk
-                    if(tries >= MAX_TRIES) break; // Max tries => give up
+
+                    if (tries >= MAX_TRIES)
+                        break; // Max tries => give up
+
                     tries++; // Increment number of tries
                 }
-                else{
+
+                else {
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
                     send_new_chunk = true; // Send new chunk

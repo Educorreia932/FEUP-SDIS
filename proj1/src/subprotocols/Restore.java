@@ -3,31 +3,35 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDR_Channel;
 import messages.GetChunkMessage;
+import peer.Peer;
 import utils.Pair;
 
-public class Restore implements Runnable{
+public class Restore implements Runnable {
     private MC_Channel mc_channel;
     private MDR_Channel mdr_channel;
     private String version;
     private int initiator_peer;
     private int number_of_chunks;
     private String file_id;
+    private String file_path;
     private GetChunkMessage message;
 
-    public Restore(int initiator_peer, String version, String file_id, int number_of_chunks,
-                   MDR_Channel mdr_channel, MC_Channel mc_channel){
+    public Restore(int initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel mdr_channel, MC_Channel mc_channel){
         this.mc_channel = mc_channel;
         this.mdr_channel = mdr_channel;
         this.version = version;
         this.initiator_peer = initiator_peer;
         this.number_of_chunks = number_of_chunks;
         this.file_id = file_id;
+        this.file_path = file_path;
         this.message = new GetChunkMessage(version, initiator_peer, file_id, 0);
     }
 
     @Override
     public void run() { //TODO: make sure all chunks are received
-        for(int chunk_no = 0; chunk_no < number_of_chunks;){
+        int chunk_no = 0;
+
+        while (chunk_no < number_of_chunks) {
             // Send message
             byte[] message_bytes = message.getBytes(null, 0);
             mc_channel.send(message_bytes);
@@ -38,10 +42,10 @@ public class Restore implements Runnable{
 
                 // Check if received chunk
                 mdr_channel.sem.acquire();
-                boolean hasChunk = mdr_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
+                boolean has_chunk = mdr_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
                 mdr_channel.sem.release();
 
-                if(hasChunk){ // Chunk received => Skip to next chunk
+                if (has_chunk) { // Chunk received => Skip to next chunk
                     chunk_no++;
                     message.setChunkNo(chunk_no);
                 }
@@ -51,7 +55,6 @@ public class Restore implements Runnable{
                 e.printStackTrace();
             }
         }
-
-        // TODO: Restore file
+        mdr_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
     }
 }

@@ -5,7 +5,9 @@ import messages.Message;
 import peer.Peer;
 import utils.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class MDR_Channel extends Channel {
@@ -30,9 +32,10 @@ public class MDR_Channel extends Channel {
         if (sender_id == peer.id) return;
 
         String type = header_fields[Fields.MSG_TYPE.ordinal()];
-        if(type.equals("CHUNK")){
+
+        if (type.equals("CHUNK")) {
             // Parse fields
-            int chunk_no  = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
+            int chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
             String file_id = header_fields[Fields.FILE_ID.ordinal()];
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
@@ -40,11 +43,32 @@ public class MDR_Channel extends Channel {
 
             try { // Store chunk
                 sem.acquire();
-                received_chunks.put(new Pair<>(file_id, chunk_no), body);
+                received_chunks.put(Pair.create(file_id, chunk_no), body);
                 sem.release();
-            } catch (InterruptedException e) {
+            }
+
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void restoreFileChunks(String file_path, String file_id, int number_of_chunks) {
+        ArrayList<byte[]> chunks = new ArrayList<>();
+
+        try {
+            this.sem.acquire();
+        }
+
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++)
+            chunks.add(received_chunks.remove(Pair.create(file_id, chunk_no)));
+
+        this.sem.release();
+
+        peer.storage.writeFile(file_path, chunks);
     }
 }

@@ -13,8 +13,8 @@ clean:
 	rm -rf ../filesystem
 
 rmi:
-	killall --quiet rmiregistry || true # This is necessary since killall would return false if no processes were running
-	rmiregistry -J-Djava.class.path=$(OUT_DIR) &
+	killall --quiet rmiregistry || true
+	rmiregistry -J-Djava.class.path=$(OUT_DIR)
 
 peer1:
 	java -cp $(OUT_DIR) peer.Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
