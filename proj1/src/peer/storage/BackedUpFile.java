@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 public class BackedUpFile {
     private String file_id;
@@ -102,5 +103,18 @@ public class BackedUpFile {
         }
 
         return hexString.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BackedUpFile that = (BackedUpFile) o;
+        return file_id.equals(that.file_id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(file_id);
     }
 }

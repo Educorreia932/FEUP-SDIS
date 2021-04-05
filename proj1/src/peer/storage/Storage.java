@@ -125,7 +125,11 @@ public class Storage {
                     chunk.delete();
                 }
             }
-            folder.delete();
+            folder.delete(); // Delete folder
         }
+    }
+
+    public void removeBackedUpFile(BackedUpFile file){
+        backed_up_files.remove(file.getPath());
     }
 }

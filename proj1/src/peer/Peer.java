@@ -163,7 +163,7 @@ public class Peer implements RMI {
             System.out.println("File to delete needs to be backed up first. Aborting...");
             return;
         }
-
+        storage.removeBackedUpFile(file); // Remove from backed up files
         Delete task = new Delete(version, id, file.getId(), control_channel);
         pool.execute(task);
     }
