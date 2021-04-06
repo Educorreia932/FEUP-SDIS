@@ -26,7 +26,7 @@ public class MDB_Channel extends Channel implements Runnable{
         if(type.equals("PUTCHUNK")){
             String chunk_no = header_fields[4];
             System.out.printf("> Peer %d | %d bytes | PUTCHUNK %s\n", peer.id, msg_len, chunk_no);
-            peer.putChunk(header_fields, body, msg_len);
+            peer.putChunk(header_fields, body);
         }
     }
 }

@@ -1,7 +1,5 @@
 package messages;
 
-import java.nio.charset.StandardCharsets;
-
 public class PutChunkMessage extends Message {
     private final int replication_degree;
     private int chunk_no;
@@ -32,10 +30,10 @@ public class PutChunkMessage extends Message {
      */
     @Override
     public byte[] getBytes(byte[] body, int body_len) {
-        byte[] header = toString().getBytes(StandardCharsets.UTF_8);
+        byte[] header = super.getBytes(null, 0);
         byte[] message = new byte[header.length + body_len];
 
-        // Copy contents to msg array
+        // Copy contents to message array
         System.arraycopy(header, 0, message, 0, header.length);
         System.arraycopy(body, 0, message, header.length, body_len);
 

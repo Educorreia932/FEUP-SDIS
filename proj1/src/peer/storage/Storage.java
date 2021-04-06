@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Storage {
-    private HashMap<String, BackedUpFile> backed_up_files;
-    private int peer_id;
+    private final HashMap<String, BackedUpFile> backed_up_files;
+    private final int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
