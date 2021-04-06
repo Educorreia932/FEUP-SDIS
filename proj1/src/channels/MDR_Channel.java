@@ -7,7 +7,6 @@ import utils.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class MDR_Channel extends Channel {
@@ -41,7 +40,8 @@ public class MDR_Channel extends Channel {
 
             System.out.printf("< Peer %d | %d bytes | CHUNK %d\n", peer.id, body.length, chunk_no);
 
-            try { // Store chunk
+            // Store chunk
+            try {
                 sem.acquire();
                 received_chunks.put(Pair.create(file_id, chunk_no), body);
                 sem.release();

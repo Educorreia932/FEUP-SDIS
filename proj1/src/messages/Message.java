@@ -25,6 +25,7 @@ public abstract class Message {
         byte[] header = new byte[header_length];
 
         System.arraycopy(message, 0, header, 0, header_length);
+
         return header;
     }
 
@@ -52,8 +53,22 @@ public abstract class Message {
         return -1;
     }
 
-    public byte[] getBytes(byte[] body, int body_len) {
-        return toString().getBytes(StandardCharsets.UTF_8);
-    }
+    /**
+     * Returns full message byte array
+     *
+     * @param body to include in byte array
+     * @return Message byte array
+     */
+    public byte[] getBytes(byte[] body, int body_length) {
+        byte[] header = toString().getBytes(StandardCharsets.UTF_8);
+        byte[] message = new byte[header.length + body_length];
 
+        // Copy contents to message array
+        System.arraycopy(header, 0, message, 0, header.length);
+
+        if (body != null)
+            System.arraycopy(body, 0, message, header.length, body_length);
+
+        return message;
+    }
 }

@@ -2,19 +2,18 @@ package subprotocols;
 
 import channels.MC_Channel;
 import messages.DeleteMessage;
+import peer.Peer;
 
-public class Delete implements Runnable{
-    private String version;
-    private int initiator_peer;
-    private MC_Channel mc_channel;
+public class Delete extends Subprotocol {
+    private Peer initiator_peer;
     private DeleteMessage message;
     private final int MAX_TRIES = 3;
 
-    public Delete(String version, int peer_id, String file_id, MC_Channel mc_channel){
-        this.version = version;
-        this.initiator_peer = peer_id;
-        this.mc_channel = mc_channel;
-        this.message = new DeleteMessage(version, peer_id, file_id);
+    public Delete(Peer initiator_peer, String version, String file_id, MC_Channel control_channel) {
+        super(control_channel, version, initiator_peer, file_id);
+
+        this.initiator_peer = initiator_peer;
+        this.message = new DeleteMessage(version, initiator_peer.id, file_id);
     }
 
 
@@ -22,8 +21,8 @@ public class Delete implements Runnable{
     public void run() {
         for(int i = 0; i < MAX_TRIES; i++) {
             byte[] message_bytes = message.getBytes(null, 0);
-            mc_channel.send(message_bytes);
-            System.out.printf("< Peer %d | %d bytes | DELETE \n", initiator_peer, message_bytes.length);
+            control_channel.send(message_bytes);
+            System.out.printf("< Peer %d | %d bytes | DELETE \n", initiator_peer.id, message_bytes.length);
 
             try {
                 Thread.sleep(400);

@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 
 public class Peer implements RMI {
     public int id;
-    private String version;
+    private String version; // TODO: Should the Peer store a version and not only the subprotocols?
     private String access_point;
     private MC_Channel control_channel;
     private MDB_Channel backup_channel;
@@ -115,11 +115,10 @@ public class Peer implements RMI {
     /**
      * Stores chunk received from the MDB channel
      *
-     * @param header  Header of the message received
-     * @param body    Chunk to store
-     * @param msg_len Length of the message received
+     * @param header Header of the message received
+     * @param body   Chunk to store
      */
-    public void putChunk(String[] header, byte[] body, int msg_len) {
+    public void putChunk(String[] header, byte[] body) {
         // Parse fields
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         String version = header[Fields.VERSION.ordinal()],
@@ -151,7 +150,7 @@ public class Peer implements RMI {
 
         else {
             BackedUpFile file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
-            Runnable task = new Backup(id, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
+            Runnable task = new Backup(this, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);
         }
@@ -166,7 +165,7 @@ public class Peer implements RMI {
             return;
         }
 
-        Runnable task = new Restore(id, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+        Runnable task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }
 
@@ -180,7 +179,7 @@ public class Peer implements RMI {
         }
 
         storage.removeBackedUpFile(file); // Remove from backed up files
-        Delete task = new Delete(version, id, file.getId(), control_channel);
+        Delete task = new Delete(this, version, file.getId(), control_channel);
         pool.execute(task);
     }
 
