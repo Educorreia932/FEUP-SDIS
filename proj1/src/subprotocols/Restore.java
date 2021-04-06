@@ -6,44 +6,40 @@ import messages.GetChunkMessage;
 import peer.Peer;
 import utils.Pair;
 
-public class Restore implements Runnable {
-    private MC_Channel mc_channel;
-    private MDR_Channel mdr_channel;
-    private String version;
-    private int initiator_peer;
-    private int number_of_chunks;
-    private String file_id;
-    private String file_path;
-    private GetChunkMessage message;
+public class Restore extends Subprotocol {
+    private final MDR_Channel restore_channel;
+    private final int number_of_chunks;
+    private final String file_id;
+    private final String file_path;
+    private final GetChunkMessage message;
 
-    public Restore(int initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel mdr_channel, MC_Channel mc_channel){
-        this.mc_channel = mc_channel;
-        this.mdr_channel = mdr_channel;
-        this.version = version;
-        this.initiator_peer = initiator_peer;
+    public Restore(Peer initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel restore_channel, MC_Channel control_channel) {
+        super(control_channel, version, initiator_peer, file_id);
+
+        this.restore_channel = restore_channel;
         this.number_of_chunks = number_of_chunks;
         this.file_id = file_id;
         this.file_path = file_path;
-        this.message = new GetChunkMessage(version, initiator_peer, file_id, 0);
+        this.message = new GetChunkMessage(version, initiator_peer.id, file_id, 0);
     }
 
     @Override
-    public void run() { //TODO: make sure all chunks are received
+    public void run() { // TODO: Make sure all chunks are received
         int chunk_no = 0;
 
         while (chunk_no < number_of_chunks) {
             // Send message
             byte[] message_bytes = message.getBytes(null, 0);
-            mc_channel.send(message_bytes);
-            System.out.printf("< Peer %d | %d bytes | GETCHUNK %d\n", initiator_peer, message_bytes.length, chunk_no);
+            control_channel.send(message_bytes);
+            System.out.printf("< Peer %d | %d bytes | GETCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
 
             try {
                 Thread.sleep(500);
 
                 // Check if received chunk
-                mdr_channel.sem.acquire();
-                boolean has_chunk = mdr_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
-                mdr_channel.sem.release();
+                restore_channel.sem.acquire();
+                boolean has_chunk = restore_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
+                restore_channel.sem.release();
 
                 if (has_chunk) { // Chunk received => Skip to next chunk
                     chunk_no++;
@@ -55,6 +51,6 @@ public class Restore implements Runnable {
                 e.printStackTrace();
             }
         }
-        mdr_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
+        restore_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
     }
 }

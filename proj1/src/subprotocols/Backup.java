@@ -3,35 +3,31 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDB_Channel;
 import messages.PutChunkMessage;
+import peer.Peer;
 import utils.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class Backup implements Runnable {
-    private int number_of_chunks;
-    private int initiator_peer;
+public class Backup extends Subprotocol {
     private final File file;
-    private final String version;
-    private PutChunkMessage message;
+    private final PutChunkMessage message;
     private final int replication_degree;
     private final MDB_Channel mdb_channel;
-    private final MC_Channel mc_channel;
+    private final int number_of_chunks;
 
-    private final short MAX_TRIES = 5;
     private static final int MAX_CHUNK_SIZE = 64000;
 
-    public Backup(int initiator_peer, String version, File file, String file_id, int number_of_chunks,
-                  int replication_degree, MDB_Channel mdb_channel, MC_Channel mc_channel) {
-        this.version = version;
+    public Backup(Peer initiator_peer, String version, File file, String file_id, int number_of_chunks,
+                  int replication_degree, MDB_Channel mdb_channel, MC_Channel control_channel) {
+        super(control_channel, version, initiator_peer, file_id);
+
         this.file = file;
-        this.initiator_peer = initiator_peer;
-        this.number_of_chunks = number_of_chunks;
         this.replication_degree = replication_degree;
+        this.number_of_chunks = number_of_chunks;
         this.mdb_channel = mdb_channel;
-        this.mc_channel = mc_channel;
-        message = new PutChunkMessage(version, initiator_peer, file_id, replication_degree, 0);
+        this.message = new PutChunkMessage(version, initiator_peer.id, file_id, replication_degree, 0);
     }
 
     @Override
@@ -50,22 +46,25 @@ public class Backup implements Runnable {
                         read_bytes = 0; // Reached EOF
                     message_bytes = message.getBytes(chunk, read_bytes);
                 }
+
                 // Send message to MDB multicast data channel
                 mdb_channel.send(message_bytes);
-                System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer, message_bytes.length, chunk_no);
+                System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
                 Thread.sleep(sleep_time);
 
                 // Access shared resource
-                mc_channel.sem.acquire(); // acquire sem to access shared resource
-                received = mc_channel.stored_msgs_received; // store value
-                mc_channel.stored_msgs_received = 0; // Reset count
-                mc_channel.sem.release(); // release sem
+                control_channel.sem.acquire(); // acquire sem to access shared resource
+                received = control_channel.stored_msgs_received; // store value
+                control_channel.stored_msgs_received = 0; // Reset count
+                control_channel.sem.release(); // release sem
 
                 if (received < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
-                    if (tries >= MAX_TRIES){
+                    short MAX_TRIES = 5;
+                    if (tries >= MAX_TRIES) {
                         System.out.println("Failed to achieve desired replication degree. Giving up...");
+
                         break; // Max tries => give up
                     }
 
@@ -75,7 +74,7 @@ public class Backup implements Runnable {
 
                 else {
                     // Store replication degree of chunk
-                    mc_channel.stored_chunks.put(Pair.create(file.getPath(), chunk_no), received);
+                    control_channel.stored_chunks.put(Pair.create(file.getPath(), chunk_no), received);
 
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
