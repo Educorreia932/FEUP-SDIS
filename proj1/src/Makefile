@@ -1,12 +1,12 @@
 MAKEFLAGS += -j 4
 
-OUT_DIR = ../out/production/proj1
+OUT_DIR = ../build
 
 all: rmi peer1 peer2 backup
 
 build:
-	javac -d ../out/production/proj1 *.java
-	javac -d ../out/production/proj1 peer/*.java
+	javac -d $(OUT_DIR) *.java
+	javac -d $(OUT_DIR) peer/*.java
 
 clean:
 	rm -rf $(OUT_DIR)
