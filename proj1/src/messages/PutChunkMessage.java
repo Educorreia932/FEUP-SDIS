@@ -21,22 +21,4 @@ public class PutChunkMessage extends Message {
     public void setChunkNo(int chunk_no) {
         this.chunk_no = chunk_no;
     }
-
-    /**
-     * Returns full message byte array
-     *
-     * @param body to include in byte array
-     * @return Message byte array
-     */
-    @Override
-    public byte[] getBytes(byte[] body, int body_len) {
-        byte[] header = super.getBytes(null, 0);
-        byte[] message = new byte[header.length + body_len];
-
-        // Copy contents to message array
-        System.arraycopy(header, 0, message, 0, header.length);
-        System.arraycopy(body, 0, message, header.length, body_len);
-
-        return message;
-    }
 }
