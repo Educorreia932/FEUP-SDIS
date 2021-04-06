@@ -149,7 +149,7 @@ public class Peer implements RMI {
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            BackedUpFile file_info = storage.addBackedUpFile(file.toPath());
+            BackedUpFile file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
             Runnable task = new Backup(id, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);

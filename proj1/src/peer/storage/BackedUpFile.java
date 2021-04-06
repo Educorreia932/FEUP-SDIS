@@ -12,11 +12,13 @@ public class BackedUpFile {
     private String file_id;
     private int number_of_chunks;
     private String path;
+    private int replication_degree;
 
-    public BackedUpFile(Path path){
+    public BackedUpFile(Path path, int replication_degree){
         this.path = path.toString();
         String id = getMetadataString(path);
         this.file_id = hash(id);
+        this.replication_degree = replication_degree;
 
         try {
             this.number_of_chunks = calculateNumOfChunks(path);

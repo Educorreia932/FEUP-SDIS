@@ -3,11 +3,14 @@ package channels;
 import messages.Fields;
 import messages.Message;
 import peer.Peer;
+import utils.Pair;
 
+import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
 
 public class MC_Channel extends Channel {
+    public HashMap<Pair<String, Integer>, Integer> stored_chunks;
     public int stored_msgs_received;
     public final Semaphore sem;
 
@@ -16,6 +19,7 @@ public class MC_Channel extends Channel {
         super(host, port, peer);
         stored_msgs_received = 0;
         sem = new Semaphore(1);
+        stored_chunks = new HashMap<>();
     }
 
     @Override

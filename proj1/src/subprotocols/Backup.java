@@ -3,6 +3,7 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDB_Channel;
 import messages.PutChunkMessage;
+import utils.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,7 +47,7 @@ public class Backup implements Runnable {
                 if (send_new_chunk) { // Send new chunk => read from file
                     // Read from file
                     if ((read_bytes = inputStream.read(chunk)) == -1)
-                        read_bytes = 0; // Reached EOF TODO: Check size
+                        read_bytes = 0; // Reached EOF
                     message_bytes = message.getBytes(chunk, read_bytes);
                 }
                 // Send message to MDB multicast data channel
@@ -73,6 +74,9 @@ public class Backup implements Runnable {
                 }
 
                 else {
+                    // Store replication degree of chunk
+                    mc_channel.stored_chunks.put(Pair.create(file.getPath(), chunk_no), received);
+
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
                     sleep_time = 1000; // Reset sleep time to 1s

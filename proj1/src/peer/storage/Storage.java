@@ -109,10 +109,11 @@ public class Storage {
     /**
      * Adds file to map of backed files
      * @param path File's path
+     * @param replication_degree File's replication degree
      * @return Return BackedUpFile corresponding to path
      */
-    public BackedUpFile addBackedUpFile(Path path) {
-        BackedUpFile file = new BackedUpFile(path);
+    public BackedUpFile addBackedUpFile(Path path, int replication_degree) {
+        BackedUpFile file = new BackedUpFile(path, replication_degree);
         backed_up_files.put(path.toString(), file);
 
         return file;
