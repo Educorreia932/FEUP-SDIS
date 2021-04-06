@@ -5,7 +5,7 @@ OUT_DIR = ../build
 all: rmi peer1 peer2 backup
 
 build:
-	javac -d $(OUT_DIR) *.java
+	javac -d $(OUT_DIR) test/*.java
 	javac -d $(OUT_DIR) peer/*.java
 
 clean:
@@ -14,8 +14,7 @@ clean:
 
 rmi:
 	killall --quiet rmiregistry || true
-	sleep 1
-	rmiregistry -J-Djava.class.path=$(OUT_DIR) &
+	rmiregistry -J-Djava.class.path=$(OUT_DIR)
 
 peer1:
 	java -cp $(OUT_DIR) peer.Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003

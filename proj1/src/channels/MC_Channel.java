@@ -24,10 +24,7 @@ public class MC_Channel extends Channel {
 
     @Override
     protected void parseMessage(byte[] msg, int msg_len) {
-        byte[] header = Message.getHeaderBytes(msg);
-
-        String header_string = new String(header);
-        String[] header_fields = header_string.split("\\s+"); // Split header by spaces
+        String[] header_fields = Message.getHeaderFields(msg);
 
         // Parse fields
         String type = header_fields[Fields.MSG_TYPE.ordinal()];

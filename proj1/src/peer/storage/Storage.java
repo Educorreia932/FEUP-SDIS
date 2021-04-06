@@ -20,9 +20,10 @@ public class Storage {
 
     /**
      * Stores chunk in peer's backup folder.
-     * @param file_id ID of file to be stored
-     * @param chunk_no Number of chunk to be stored
-     * @param body Body of chunk to be stored
+     *
+     * @param file_id            ID of file to be stored
+     * @param chunk_no           Number of chunk to be stored
+     * @param body               Body of chunk to be stored
      * @param replication_degree desired replication degree of chunk to be stored
      * @return True if chunk is stored, false otherwise
      */
@@ -44,7 +45,7 @@ public class Storage {
         try (FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no)) {
             int chunk_size = 0;
 
-            if(body != null){ // Don't write if empty chunk
+            if (body != null) { // Don't write if empty chunk
                 stream.write(body);
                 chunk_size = body.length;
             }
@@ -61,11 +62,12 @@ public class Storage {
 
     /**
      * Returns file chunk
-     * @param file_id ID of file
+     *
+     * @param file_id  ID of file
      * @param chunk_no Number of chunk
      * @return Returns the if chunk its already stored. Null otherwise.
      */
-    public File getStoredChunk(String file_id, int chunk_no){
+    public File getStoredChunk(String file_id, int chunk_no) {
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
         File file = new File(path);
 
@@ -79,7 +81,7 @@ public class Storage {
      * Returns file with path equal to file_pathname
      *
      * @param file_pathname Path to file
-     * @param peer_id Id of peer
+     * @param peer_id       Id of peer
      * @return File if it exists, null otherwise
      */
     public File getFile(String file_pathname, int peer_id) {
@@ -104,17 +106,19 @@ public class Storage {
 
     /**
      * Returns file information for the path given, if it was backed up
+     *
      * @param file_name Name of file
      * @return File information
      */
-    public BackedUpFile getFileInfo(String file_name){
+    public BackedUpFile getFileInfo(String file_name) {
         String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
         return backed_up_files.get(file_path);
     }
 
     /**
      * Adds file to map of backed files
-     * @param path File's path
+     *
+     * @param path               File's path
      * @param replication_degree File's replication degree
      * @return Return BackedUpFile corresponding to path
      */
@@ -125,17 +129,17 @@ public class Storage {
         return file;
     }
 
-    public void deleteFile(String file_id){
+    public void deleteFile(String file_id) {
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id;
         File folder = new File(path);
 
-        if (folder.exists() && folder.isDirectory()){
+        if (folder.exists() && folder.isDirectory()) {
             // Empty directory
             File[] chunks = folder.listFiles();
 
-            if (chunks != null){
+            if (chunks != null) {
                 int chunk_no = 0;
-                for(File chunk : chunks){
+                for (File chunk : chunks) {
                     chunk.delete();
                     backed_up_chunks.remove(new BackedUpChunk(file_id, chunk_no));
                     chunk_no++;
@@ -146,7 +150,7 @@ public class Storage {
         }
     }
 
-    public void removeBackedUpFile(BackedUpFile file){
+    public void removeBackedUpFile(BackedUpFile file) {
         backed_up_files.remove(file.getPath());
     }
 

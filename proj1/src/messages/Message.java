@@ -71,4 +71,10 @@ public abstract class Message {
 
         return message;
     }
+
+    public static String[] getHeaderFields(byte[] message_bytes) {
+        String header_string = new String(getHeaderBytes(message_bytes));
+
+        return header_string.split("\\s+"); // Split header by spaces
+    }
 }
