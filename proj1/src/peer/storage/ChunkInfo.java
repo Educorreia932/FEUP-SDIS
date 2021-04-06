@@ -62,7 +62,7 @@ public class ChunkInfo {
 
     public void incrementPerceivedRepDegree(int sender_id) {
         if(!peers.contains(sender_id)){ // Check if sender already sent stored msg
-            this.peers.add(sender_id); // Add sender
+            //this.peers.add(sender_id); // Add sender TODO: crasha
             this.perceived_rep_deg++;  // Increment rep deg
         }
     }

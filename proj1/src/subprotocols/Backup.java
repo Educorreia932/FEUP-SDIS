@@ -33,7 +33,7 @@ public class Backup extends Subprotocol {
     @Override
     public void run() {
         boolean send_new_chunk = true;
-        int read_bytes, tries = 1, sleep_time = 1000;
+        int read_bytes, tries = 1, sleep_time = 1000, received_stored_msgs = 0;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
 
         try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
@@ -53,7 +53,8 @@ public class Backup extends Subprotocol {
                 Thread.sleep(sleep_time);
 
                 // TODO: Verify Rep Deg
-                if (1000 < replication_degree) {
+                received_stored_msgs = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
+                if (received_stored_msgs < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
                     short MAX_TRIES = 5;

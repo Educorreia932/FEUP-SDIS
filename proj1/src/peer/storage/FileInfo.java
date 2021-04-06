@@ -135,4 +135,10 @@ public class FileInfo {
             chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, desired_replication_degree));
         else chunk.incrementPerceivedRepDegree(sender_id);
     }
+
+    public int getPerceivedRP(int chunk_no) {
+        ChunkInfo chunk = chunks.get(chunk_no);
+        if(chunk == null) return 0;
+        return chunk.getDesired_rep_deg();
+    }
 }

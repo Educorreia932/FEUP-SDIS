@@ -26,16 +26,16 @@ peer3:
 	java -cp $(OUT_DIR) peer.Peer 1.0 3 3 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
-	java -cp $(OUT_DIR) TestApp 1 BACKUP oinc.jpg 1
+	java -cp $(OUT_DIR) test.TestApp 1 BACKUP empty 1
 
 restore:
-	java -cp $(OUT_DIR) TestApp 1 RESTORE oinc.jpg
+	java -cp $(OUT_DIR) test.TestApp 1 RESTORE oinc.jpg
 
 delete:
-	java -cp $(OUT_DIR) TestApp 1 DELETE oinc.jpg
+	java -cp $(OUT_DIR) test.TestApp 1 DELETE oinc.jpg
 
 reclaim:
-	java -cp $(OUT_DIR) TestApp 1 RECLAIM 0
+	java -cp $(OUT_DIR) test.TestApp 1 RECLAIM 0
 
 state:
-	java -cp $(OUT_DIR) TestApp 1 STATE
+	java -cp $(OUT_DIR) test.TestApp 1 STATE

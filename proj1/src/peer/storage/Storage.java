@@ -172,17 +172,26 @@ public class Storage {
     }
 
     public void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
-
         // Updates perceived_rep_deg for BackedUpFiles
-        FileInfo file = backed_up_files.get(file_id);
+        FileInfo file = null;
+        for(FileInfo f : backed_up_files.values()){
+            if(f.getId().equals(file_id))
+                file = f;
+        }
         if(file != null) // If peer backed up the file
             file.incrementReplicationDegree(chunk_no, sender_id);
 
         else{
             //Updates perceived_rep-deg for stored chunks
             ChunkInfo chunk = stored_chunks.get(chunk_no);
-            if(chunk != null) // If peer as chunk
+            if(chunk != null) // If peer Has chunk
                 chunk.incrementPerceivedRepDegree(sender_id);
         }
+    }
+
+    public int getPerceivedRP(String file_path, int chunk_no){
+        FileInfo file = backed_up_files.get(file_path);
+        if (file == null) return 0;
+        return file.getPerceivedRP(chunk_no);
     }
 }
