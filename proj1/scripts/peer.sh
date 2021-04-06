@@ -1,5 +1,11 @@
 #! /usr/bin/bash
 
+# Script for running a peer
+# To be run in the root of the build tree
+# No jar files used
+# Assumes that Peer is the main class and that it belongs to the peer package
+# Modify as appropriate, so that it can be run from the root of the compiled tree
+
 # Check number of input arguments
 
 argc=$#
