@@ -4,7 +4,7 @@ import messages.ChunkMessage;
 import messages.Fields;
 import messages.StoredMessage;
 import channels.*;
-import peer.storage.BackedUpFile;
+import peer.storage.FileInfo;
 import peer.storage.Storage;
 import subprotocols.*;
 
@@ -16,7 +16,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -150,7 +149,7 @@ public class Peer implements RMI {
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            BackedUpFile file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
+            FileInfo file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
             Runnable task = new Backup(this, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);
@@ -159,7 +158,7 @@ public class Peer implements RMI {
 
     @Override
     public void restoreFile(String file_path) {
-        BackedUpFile file = storage.getFileInfo(file_path);
+        FileInfo file = storage.getFileInfo(file_path);
 
         if (file == null) {
             System.out.println("File to restore needs to be backed up first. Aborting...");
@@ -172,7 +171,7 @@ public class Peer implements RMI {
 
     @Override
     public void deleteFile(String file_path) {
-        BackedUpFile file = storage.getFileInfo(file_path);
+        FileInfo file = storage.getFileInfo(file_path);
 
         if (file == null) {
             System.out.println("File to delete needs to be backed up first. Aborting...");

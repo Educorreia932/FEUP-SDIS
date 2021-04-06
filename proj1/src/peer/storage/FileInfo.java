@@ -6,33 +6,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Objects;
 
-public class BackedUpFile {
-    private String file_id;
+public class FileInfo {
+    private final String file_id;
     private int number_of_chunks;
-    private String path;
-    private int replication_degree;
+    private final String path;
+    private final int replication_degree;
+    private ArrayList<ChunkInfo> chunks;
 
-    public BackedUpFile(Path path, int replication_degree){
+    public FileInfo(Path path, int replication_degree) {
         this.path = path.toString();
         String id = getMetadataString(path);
         this.file_id = hash(id);
         this.replication_degree = replication_degree;
+        this.chunks = new ArrayList<>();
 
         try {
             this.number_of_chunks = calculateNumOfChunks(path);
-        } catch (IOException e) {
+        }
+
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private int calculateNumOfChunks(Path path) throws IOException {
         long bytes = Files.size(path);
-        return (int)(bytes / Storage.MAX_CHUNK_SIZE + 1);
+        return (int) (bytes / Storage.MAX_CHUNK_SIZE + 1);
     }
 
-    public String getPath(){
+    public String getPath() {
         return path;
     }
 
@@ -40,7 +45,7 @@ public class BackedUpFile {
         return number_of_chunks;
     }
 
-    public String getId(){
+    public String getId() {
         return file_id;
     }
 
@@ -115,12 +120,16 @@ public class BackedUpFile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BackedUpFile that = (BackedUpFile) o;
+        FileInfo that = (FileInfo) o;
         return file_id.equals(that.file_id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(file_id);
+    }
+
+    public void updateChunkRepDegree(int chunk_no) {
+        chunks[chunk_no].upda
     }
 }

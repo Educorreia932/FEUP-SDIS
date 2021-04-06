@@ -5,9 +5,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class Storage {
-    public HashMap<String, BackedUpFile> backed_up_files;
-    public Set<BackedUpChunk> backed_up_chunks;
-    private int peer_id;
+    public HashMap<String, FileInfo> backed_up_files;
+    public Set<ChunkInfo> backed_up_chunks;
+    private final int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
@@ -49,7 +49,7 @@ public class Storage {
                 stream.write(body);
                 chunk_size = body.length;
             }
-            backed_up_chunks.add(new BackedUpChunk(file_id, chunk_no, chunk_size, replication_degree));
+            backed_up_chunks.add(new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree));
             return true;
         }
 
@@ -110,8 +110,9 @@ public class Storage {
      * @param file_name Name of file
      * @return File information
      */
-    public BackedUpFile getFileInfo(String file_name) {
+    public FileInfo getFileInfo(String file_name) {
         String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
+
         return backed_up_files.get(file_path);
     }
 
@@ -122,8 +123,8 @@ public class Storage {
      * @param replication_degree File's replication degree
      * @return Return BackedUpFile corresponding to path
      */
-    public BackedUpFile addBackedUpFile(Path path, int replication_degree) {
-        BackedUpFile file = new BackedUpFile(path, replication_degree);
+    public FileInfo addBackedUpFile(Path path, int replication_degree) {
+        FileInfo file = new FileInfo(path, replication_degree);
         backed_up_files.put(path.toString(), file);
 
         return file;
@@ -141,7 +142,7 @@ public class Storage {
                 int chunk_no = 0;
                 for (File chunk : chunks) {
                     chunk.delete();
-                    backed_up_chunks.remove(new BackedUpChunk(file_id, chunk_no));
+                    backed_up_chunks.remove(new ChunkInfo(file_id, chunk_no));
                     chunk_no++;
                 }
             }
@@ -150,12 +151,11 @@ public class Storage {
         }
     }
 
-    public void removeBackedUpFile(BackedUpFile file) {
+    public void removeBackedUpFile(FileInfo file) {
         backed_up_files.remove(file.getPath());
     }
 
     public void writeFile(String file_path, ArrayList<byte[]> chunks) {
-
         try {
             FileOutputStream stream = new FileOutputStream(file_path);
 

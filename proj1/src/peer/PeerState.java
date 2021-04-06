@@ -1,50 +1,55 @@
 package peer;
 
-import peer.storage.BackedUpChunk;
-import peer.storage.BackedUpFile;
+import peer.storage.ChunkInfo;
+import peer.storage.FileInfo;
 import utils.Pair;
 
 import java.util.HashMap;
 import java.util.Set;
 
 public class PeerState {
-    private Set<BackedUpChunk> backed_up_chunks;
-    private HashMap<String, BackedUpFile> backed_up_files;
+    private Set<ChunkInfo> backed_up_chunks;
+    private HashMap<String, FileInfo> backed_up_files;
     private HashMap<Pair<String, Integer>, Integer> stored_chunks;
 
-    public PeerState(HashMap<String, BackedUpFile> backed_up_files, HashMap<Pair<String, Integer>, Integer> stored_chunks,
-                     Set<BackedUpChunk> backed_up_chunks) {
+    public PeerState(HashMap<String, FileInfo> backed_up_files, HashMap<Pair<String, Integer>, Integer> stored_chunks,
+                     Set<ChunkInfo> backed_up_chunks) {
         this.backed_up_files = backed_up_files;
         this.stored_chunks = stored_chunks;
         this.backed_up_chunks = backed_up_chunks;
     }
 
-    private String getBackedUpFilesInfo(){
-        String result = "----------------- \n BACKED UP FILES\n----------------- \n\n";
-        for(String path : backed_up_files.keySet()){
-            BackedUpFile file = backed_up_files.get(path);
-            result +=   "PATH: " + path + '\n'+
-                        "ID: " + file.getId() + '\n' +
-                        "Desired Replication Degree: " + file.getReplication_degree() + '\n';
+    private String getBackedUpFilesInfo() {
+        StringBuilder result = new StringBuilder("----------------- \n BACKED UP FILES\n----------------- \n\n");
+        for (String path : backed_up_files.keySet()) {
+            FileInfo file = backed_up_files.get(path);
+            result.append("PATH: ").append(path).append('\n').append("ID: ").append(file.getId()).append('\n').append("Desired Replication Degree: ").append(file.getReplication_degree()).append('\n');
 
-            for(int chunk_no = 0; chunk_no < file.getNumberOfChunks(); chunk_no++){
+            for (int chunk_no = 0; chunk_no < file.getNumberOfChunks(); chunk_no++) {
                 int rep_deg = stored_chunks.get(Pair.create(path, chunk_no)); //TODO: Check exists
-                result += "CHUNK: " + chunk_no + " - Perceived RP: " + rep_deg + "\n";
+                result.append("CHUNK: ").append(chunk_no).append(" - Perceived RP: ").append(rep_deg).append("\n");
             }
-            result += '\n';
+            result.append('\n');
         }
-        return result;
+        return result.toString();
     }
 
-    private String getBackedUpChunksInfo(){
-        String result = "------------------ \n BACKED UP CHUNKS\n------------------ \n\n";
-        for (BackedUpChunk chunk : backed_up_chunks){
-            result += "ID: " + chunk.getFile_id() + '/' + chunk.getChunk_no()
-                    + "\nSIZE: " + chunk.getSize()
-                    + "\nDESIRED REPLICATION DEGREE: " + chunk.getDesired_rep_deg()
-                    + "\nPERCEIVED REPLICATION DEGREE: " + "TODO" + '\n'; // TODO: Add: desired
-        }
-        return result;
+    private String getBackedUpChunksInfo() {
+        StringBuilder result = new StringBuilder("------------------ \n BACKED UP CHUNKS\n------------------ \n\n");
+        for (ChunkInfo chunk : backed_up_chunks)
+            result
+                .append("ID: ")
+                .append(chunk.getFile_id())
+                .append('/')
+                .append(chunk.getChunk_no())
+                .append("\nSIZE: ")
+                .append(chunk.getSize())
+                .append("\nDESIRED REPLICATION DEGREE: ")
+                .append(chunk.getDesired_rep_deg())
+                .append("\nPERCEIVED REPLICATION DEGREE: ")
+                .append("TODO")
+                .append('\n'); // TODO: Add: desired | Use formatting
+        return result.toString();
     }
 
     @Override

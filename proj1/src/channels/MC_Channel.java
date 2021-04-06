@@ -12,13 +12,11 @@ import java.util.concurrent.Semaphore;
 public class MC_Channel extends Channel {
     public HashMap<Pair<String, Integer>, Integer> stored_chunks;
     public int stored_msgs_received;
-    public final Semaphore sem;
 
     public MC_Channel(String host, int port, Peer peer) {
-
         super(host, port, peer);
+
         stored_msgs_received = 0;
-        sem = new Semaphore(1);
         stored_chunks = new HashMap<>();
     }
 
@@ -35,15 +33,12 @@ public class MC_Channel extends Channel {
 
         switch (type){
             case "STORED":
-                try {
-                    System.out.printf("> Peer %d | STORED \n", peer.id);
-                    // Increment shared resource
-                    sem.acquire();
-                    stored_msgs_received++;
-                    sem.release();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                System.out.printf("> Peer %d | STORED \n", peer.id);
+
+                peer.storage.
+
+                stored_msgs_received++;
+
                 break;
 
             case "GETCHUNK":
