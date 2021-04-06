@@ -2,11 +2,11 @@ package peer.storage;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Storage {
     public HashMap<String, BackedUpFile> backed_up_files;
+    public Set<BackedUpChunk> backed_up_chunks;
     private int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
@@ -14,6 +14,7 @@ public class Storage {
 
     public Storage(int peer_id) {
         backed_up_files = new HashMap<>();
+        backed_up_chunks = Collections.synchronizedSet(new HashSet<>());
         this.peer_id = peer_id;
     }
 
@@ -22,9 +23,10 @@ public class Storage {
      * @param file_id ID of file to be stored
      * @param chunk_no Number of chunk to be stored
      * @param body Body of chunk to be stored
+     * @param replication_degree desired replication degree of chunk to be stored
      * @return True if chunk is stored, false otherwise
      */
-    public boolean putChunk(String file_id, int chunk_no, byte[] body) {
+    public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
         File chunk = getStoredChunk(file_id, chunk_no);
 
         if (chunk != null) // Chunk already stored
@@ -40,9 +42,13 @@ public class Storage {
             }
 
         try (FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no)) {
-            if(body != null)
-                stream.write(body); // Don't write if empty chunk
+            int chunk_size = 0;
 
+            if(body != null){ // Don't write if empty chunk
+                stream.write(body);
+                chunk_size = body.length;
+            }
+            backed_up_chunks.add(new BackedUpChunk(file_id, chunk_no, chunk_size, replication_degree));
             return true;
         }
 
@@ -128,8 +134,11 @@ public class Storage {
             File[] chunks = folder.listFiles();
 
             if (chunks != null){
+                int chunk_no = 0;
                 for(File chunk : chunks){
                     chunk.delete();
+                    backed_up_chunks.remove(new BackedUpChunk(file_id, chunk_no));
+                    chunk_no++;
                 }
             }
 

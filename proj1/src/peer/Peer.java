@@ -120,12 +120,13 @@ public class Peer implements RMI {
      */
     public void putChunk(String[] header, byte[] body) {
         // Parse fields
-        int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
+        int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]),
+        replication_degree = Integer.parseInt(header[Fields.REP_DEG.ordinal()]);
         String version = header[Fields.VERSION.ordinal()],
                 file_id = header[Fields.FILE_ID.ordinal()];
 
         // If store was successful send STORED
-        if (storage.putChunk(file_id, chunk_no, body)) {
+        if (storage.putChunk(file_id, chunk_no, body, replication_degree)) {
             try { // Sleep (0-400ms)
                 Thread.sleep(new Random().nextInt(400));
             }
@@ -190,7 +191,7 @@ public class Peer implements RMI {
 
     @Override
     public String getStateInformation() {
-        return new PeerState(storage.backed_up_files, control_channel.stored_chunks).toString();
+        return new PeerState(storage.backed_up_files, control_channel.stored_chunks, storage.backed_up_chunks).toString();
     }
 
     private static void usage() {
