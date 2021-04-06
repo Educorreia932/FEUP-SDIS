@@ -1,6 +1,10 @@
 package peer.storage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkInfo {
     private String file_id;
@@ -8,18 +12,23 @@ public class ChunkInfo {
     private int size;
     private int desired_rep_deg;
     private int perceived_rep_deg;
+    private Set<Integer> peers;
 
     public ChunkInfo(String file_id, int chunk_no, int size, int desired_rep_deg) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
         this.size = size;
         this.desired_rep_deg = desired_rep_deg;
-        this.perceived_rep_deg = 0;
+        this.perceived_rep_deg = 1;
+        this.peers = new ConcurrentHashMap<Integer, Integer>().keySet();
     }
 
-    public ChunkInfo(String file_id, int chunk_no) {
+    public ChunkInfo(String file_id, int chunk_no, int desired_rep_deg) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
+        this.desired_rep_deg = desired_rep_deg;
+        this.perceived_rep_deg = 1;
+        this.peers = new ConcurrentHashMap<Integer, Integer>().keySet();
     }
 
     public String getFile_id() {
@@ -51,11 +60,10 @@ public class ChunkInfo {
         return Objects.hash(file_id, chunk_no);
     }
 
-    public void incrementPerceivedRepDegree() {
-        this.perceived_rep_deg++;
-    }
-
-    public void decrementPerceivedRepDegree() {
-        this.perceived_rep_deg--;
+    public void incrementPerceivedRepDegree(int sender_id) {
+        if(!peers.contains(sender_id)){ // Check if sender already sent stored msg
+            this.peers.add(sender_id); // Add sender
+            this.perceived_rep_deg++;  // Increment rep deg
+        }
     }
 }

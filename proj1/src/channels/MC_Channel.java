@@ -10,14 +10,9 @@ import java.util.concurrent.Semaphore;
 
 
 public class MC_Channel extends Channel {
-    public HashMap<Pair<String, Integer>, Integer> stored_chunks;
-    public int stored_msgs_received;
 
     public MC_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
-
-        stored_msgs_received = 0;
-        stored_chunks = new HashMap<>();
     }
 
     @Override
@@ -33,11 +28,12 @@ public class MC_Channel extends Channel {
 
         switch (type){
             case "STORED":
+                // Parse fields
+                String file_id = header_fields[Fields.FILE_ID.ordinal()];
+                int chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
+
                 System.out.printf("> Peer %d | STORED \n", peer.id);
-
-                peer.storage.
-
-                stored_msgs_received++;
+                peer.storage.incrementReplicationDegree(file_id, chunk_no, sender_id);
 
                 break;
 

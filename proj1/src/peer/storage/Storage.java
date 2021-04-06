@@ -3,18 +3,19 @@ package peer.storage;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Storage {
-    public HashMap<String, FileInfo> backed_up_files;
-    public Set<ChunkInfo> backed_up_chunks;
+    public ConcurrentHashMap<String, FileInfo> backed_up_files;
+    public ConcurrentHashMap<Integer, ChunkInfo> stored_chunks;
     private final int peer_id;
     public final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
 
     public Storage(int peer_id) {
-        backed_up_files = new HashMap<>();
-        backed_up_chunks = Collections.synchronizedSet(new HashSet<>());
+        backed_up_files = new ConcurrentHashMap<>();
+        stored_chunks = new ConcurrentHashMap<>();
         this.peer_id = peer_id;
     }
 
@@ -49,7 +50,7 @@ public class Storage {
                 stream.write(body);
                 chunk_size = body.length;
             }
-            backed_up_chunks.add(new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree));
+            stored_chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree));
             return true;
         }
 
@@ -142,7 +143,7 @@ public class Storage {
                 int chunk_no = 0;
                 for (File chunk : chunks) {
                     chunk.delete();
-                    backed_up_chunks.remove(new ChunkInfo(file_id, chunk_no));
+                    stored_chunks.remove(chunk_no);
                     chunk_no++;
                 }
             }
@@ -167,6 +168,21 @@ public class Storage {
 
         catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
+
+        // Updates perceived_rep_deg for BackedUpFiles
+        FileInfo file = backed_up_files.get(file_id);
+        if(file != null) // If peer backed up the file
+            file.incrementReplicationDegree(chunk_no, sender_id);
+
+        else{
+            //Updates perceived_rep-deg for stored chunks
+            ChunkInfo chunk = stored_chunks.get(chunk_no);
+            if(chunk != null) // If peer as chunk
+                chunk.incrementPerceivedRepDegree(sender_id);
         }
     }
 }

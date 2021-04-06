@@ -33,7 +33,7 @@ public class Backup extends Subprotocol {
     @Override
     public void run() {
         boolean send_new_chunk = true;
-        int read_bytes, tries = 1, received = 0, sleep_time = 1000;
+        int read_bytes, tries = 1, sleep_time = 1000;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
 
         try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
@@ -52,19 +52,13 @@ public class Backup extends Subprotocol {
                 System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
                 Thread.sleep(sleep_time);
 
-                // Access shared resource
-                control_channel.sem.acquire(); // acquire sem to access shared resource
-                received = control_channel.stored_msgs_received; // store value
-                control_channel.stored_msgs_received = 0; // Reset count
-                control_channel.sem.release(); // release sem
-
-                if (received < replication_degree) {
+                // TODO: Verify Rep Deg
+                if (1000 < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
                     short MAX_TRIES = 5;
                     if (tries >= MAX_TRIES) {
                         System.out.println("Failed to achieve desired replication degree. Giving up...");
-
                         break; // Max tries => give up
                     }
 
@@ -73,9 +67,6 @@ public class Backup extends Subprotocol {
                 }
 
                 else {
-                    // Store replication degree of chunk
-                    control_channel.stored_chunks.put(Pair.create(file.getPath(), chunk_no), received);
-
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
                     sleep_time = 1000; // Reset sleep time to 1s

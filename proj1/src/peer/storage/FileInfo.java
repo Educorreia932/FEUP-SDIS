@@ -6,22 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FileInfo {
     private final String file_id;
     private int number_of_chunks;
     private final String path;
-    private final int replication_degree;
-    private ArrayList<ChunkInfo> chunks;
+    private final int desired_replication_degree;
+    private ConcurrentHashMap<Integer, ChunkInfo> chunks;
 
     public FileInfo(Path path, int replication_degree) {
         this.path = path.toString();
         String id = getMetadataString(path);
         this.file_id = hash(id);
-        this.replication_degree = replication_degree;
-        this.chunks = new ArrayList<>();
+        this.desired_replication_degree = replication_degree;
+        this.chunks = new ConcurrentHashMap<>();
 
         try {
             this.number_of_chunks = calculateNumOfChunks(path);
@@ -49,8 +49,8 @@ public class FileInfo {
         return file_id;
     }
 
-    public int getReplication_degree() {
-        return replication_degree;
+    public int getDesired_replication_degree() {
+        return desired_replication_degree;
     }
 
     /**
@@ -129,7 +129,10 @@ public class FileInfo {
         return Objects.hash(file_id);
     }
 
-    public void updateChunkRepDegree(int chunk_no) {
-        chunks[chunk_no].upda
+    public void incrementReplicationDegree(int chunk_no, int sender_id) {
+        ChunkInfo chunk = chunks.get(chunk_no);
+        if(chunk == null)
+            chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, desired_replication_degree));
+        else chunk.incrementPerceivedRepDegree(sender_id);
     }
 }

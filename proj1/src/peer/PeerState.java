@@ -23,7 +23,7 @@ public class PeerState {
         StringBuilder result = new StringBuilder("----------------- \n BACKED UP FILES\n----------------- \n\n");
         for (String path : backed_up_files.keySet()) {
             FileInfo file = backed_up_files.get(path);
-            result.append("PATH: ").append(path).append('\n').append("ID: ").append(file.getId()).append('\n').append("Desired Replication Degree: ").append(file.getReplication_degree()).append('\n');
+            result.append("PATH: ").append(path).append('\n').append("ID: ").append(file.getId()).append('\n').append("Desired Replication Degree: ").append(file.getDesired_replication_degree()).append('\n');
 
             for (int chunk_no = 0; chunk_no < file.getNumberOfChunks(); chunk_no++) {
                 int rep_deg = stored_chunks.get(Pair.create(path, chunk_no)); //TODO: Check exists

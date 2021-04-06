@@ -190,7 +190,8 @@ public class Peer implements RMI {
 
     @Override
     public String getStateInformation() {
-        return new PeerState(storage.backed_up_files, control_channel.stored_chunks, storage.backed_up_chunks).toString();
+        return ""; // TODO: Fix
+        // return new PeerState(storage.backed_up_files, control_channel.stored_chunks, storage.stored_chunks).toString();
     }
 
     private static void usage() {
