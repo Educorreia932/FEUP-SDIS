@@ -63,8 +63,7 @@ public class TestApp {
                     break;
 
                 case "STATE":
-                    stub.getStateInformation();
-
+                    System.out.println(stub.getStateInformation());
                     break;
 
                 default:

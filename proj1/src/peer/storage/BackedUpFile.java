@@ -44,6 +44,10 @@ public class BackedUpFile {
         return file_id;
     }
 
+    public int getReplication_degree() {
+        return replication_degree;
+    }
+
     /**
      * Enscrypts file data string using SHA-256
      *

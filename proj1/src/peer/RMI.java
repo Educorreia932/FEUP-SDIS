@@ -12,5 +12,5 @@ public interface RMI extends Remote {
 
     void reclaim(int max_space) throws RemoteException;
 
-    void getStateInformation() throws RemoteException;
+    String getStateInformation() throws RemoteException;
 }

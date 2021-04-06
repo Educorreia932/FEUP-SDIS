@@ -16,6 +16,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -189,8 +190,8 @@ public class Peer implements RMI {
     }
 
     @Override
-    public void getStateInformation() {
-        System.out.println("Not implemented yet");
+    public String getStateInformation() {
+        return new PeerState(storage.backed_up_files, control_channel.stored_chunks).toString();
     }
 
     private static void usage() {
