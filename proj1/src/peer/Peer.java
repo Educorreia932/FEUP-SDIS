@@ -88,7 +88,7 @@ public class Peer implements RMI {
             return; // Chunk is not stored
         }
 
-        int read_bytes;
+        int read_bytes = 0;
         byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
         ChunkMessage message = new ChunkMessage(version, id, file_id, chunk_no);
 
@@ -96,16 +96,18 @@ public class Peer implements RMI {
         try {
             // Read chunk
             FileInputStream inputStream = new FileInputStream(chunk.getPath());
-            read_bytes = inputStream.read(body); // TODO: Check -1
 
-            // Send CHUNK msg
+            if(inputStream.available() > 0) // Check if empty
+                read_bytes = inputStream.read(body); // Read chunk
+
+            // Get message byte array
             message_bytes = message.getBytes(body, read_bytes);
 
             restore_channel.received_chunk_msg.set(false);
             Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
             if(restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
 
-            restore_channel.send(message_bytes);
+            restore_channel.send(message_bytes); // Send message
             System.out.printf("< Peer %d sent | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
         }
         catch (IOException | InterruptedException e) {
