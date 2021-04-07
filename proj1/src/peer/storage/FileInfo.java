@@ -13,8 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FileInfo implements Serializable {
     private final String file_id;
     private int number_of_chunks;
-    private final String path;
-    private final int desired_replication_degree;
+    private String path;
+    private int desired_replication_degree;
     private ConcurrentHashMap<Integer, ChunkInfo> chunks;
 
     public FileInfo(Path path, int replication_degree) {
@@ -31,6 +31,10 @@ public class FileInfo implements Serializable {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public FileInfo(String file_id) {
+        this.file_id = file_id;
     }
 
     private int calculateNumOfChunks(Path path) throws IOException {

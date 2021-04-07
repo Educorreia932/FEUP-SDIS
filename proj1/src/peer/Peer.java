@@ -100,10 +100,15 @@ public class Peer implements RMI {
 
             // Send CHUNK msg
             message_bytes = message.getBytes(body, read_bytes);
+
+            restore_channel.received_chunk_msg.set(false);
+            Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
+            if(restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
+
             restore_channel.send(message_bytes);
             System.out.printf("< Peer %d sent | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }

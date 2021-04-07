@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Storage implements Serializable{
     private final ConcurrentHashMap<String, FileInfo> backed_up_files;
@@ -194,5 +195,11 @@ public class Storage implements Serializable{
         FileInfo file = backed_up_files.get(file_path);
         if (file == null) return 0;
         return file.getPerceivedRP(chunk_no);
+    }
+
+    public AtomicBoolean isFileBackedUp(String file_id){
+        return new AtomicBoolean(
+                backed_up_files.containsValue(new FileInfo(file_id))
+        );
     }
 }

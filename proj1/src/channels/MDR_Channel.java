@@ -7,13 +7,16 @@ import utils.Pair;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MDR_Channel extends Channel {
     public ConcurrentHashMap<Pair<String, Integer>, byte[]> received_chunks;
+    public AtomicBoolean received_chunk_msg;
 
     public MDR_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
         received_chunks = new ConcurrentHashMap<>();
+        this.received_chunk_msg = new AtomicBoolean(false);
     }
 
     @Override
@@ -34,8 +37,11 @@ public class MDR_Channel extends Channel {
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
             if(body != null){
+                this.received_chunk_msg.set(true);
                 System.out.printf("< Peer %d received | %d bytes | CHUNK %d | FROM Peer %d\n", peer.id, body.length, chunk_no, sender_id);
-                received_chunks.putIfAbsent(Pair.create(file_id, chunk_no), body); // Store chunk
+
+                if(peer.storage.isFileBackedUp(file_id).get()) // Store chunk only if peer asked for it
+                    received_chunks.putIfAbsent(Pair.create(file_id, chunk_no), body); // Store chunk
             }
         }
     }
