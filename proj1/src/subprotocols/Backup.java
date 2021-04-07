@@ -51,8 +51,8 @@ public class Backup extends Subprotocol {
                 System.out.printf("< Peer %d sent | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
                 Thread.sleep(sleep_time);
 
+                // Check perceived RP
                 perceived_rp = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
-                System.out.println("RP: " + perceived_rp + "Desired: " + replication_degree);
 
                 if (perceived_rp < replication_degree) {
                     send_new_chunk = false; // Resend chunk

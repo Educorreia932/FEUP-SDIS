@@ -1,6 +1,7 @@
 package peer.storage;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FileInfo {
+public class FileInfo implements Serializable {
     private final String file_id;
     private int number_of_chunks;
     private final String path;

@@ -27,9 +27,8 @@ public class MC_Channel extends Channel {
         switch (type){
             case "STORED":
                 String file_id = header_fields[Fields.FILE_ID.ordinal()];
-                System.out.println("Storing");
                 peer.storage.incrementReplicationDegree(file_id, chunk_no, sender_id);
-                System.out.println("Next");
+                peer.saveStorage();
                 break;
 
             case "GETCHUNK":

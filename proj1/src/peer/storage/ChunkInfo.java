@@ -1,10 +1,11 @@
 package peer.storage;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ChunkInfo {
+public class ChunkInfo implements Serializable {
     private String file_id;
     private int chunk_no;
     private int size;

@@ -5,12 +5,12 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage {
-    public ConcurrentHashMap<String, FileInfo> backed_up_files;
-    public ConcurrentHashMap<Integer, ChunkInfo> stored_chunks;
-    private final int peer_id;
-    public final String FILESYSTEM_FOLDER = "../filesystem/peer";
-    public final String BACKUP_FOLDER = "/backup/";
+public class Storage implements Serializable{
+    private final ConcurrentHashMap<String, FileInfo> backed_up_files;
+    private final ConcurrentHashMap<Integer, ChunkInfo> stored_chunks;
+    private transient final int peer_id;
+    public static String FILESYSTEM_FOLDER = "../filesystem/peer";
+    public static String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
 
     public Storage(int peer_id) {

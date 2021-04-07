@@ -8,9 +8,7 @@ import peer.storage.FileInfo;
 import peer.storage.Storage;
 import subprotocols.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -190,10 +188,24 @@ public class Peer implements RMI {
     @Override
     public String getStateInformation() {
         return ""; // TODO: Fix
-        // return new PeerState(storage.backed_up_files, control_channel.stored_chunks, storage.stored_chunks).toString();
+        // return new PeerState(storage).toString();
     }
 
     private static void usage() {
         System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
+    }
+
+    public void saveStorage(){
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt");
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+
+            objectOutputStream.writeObject(storage);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
