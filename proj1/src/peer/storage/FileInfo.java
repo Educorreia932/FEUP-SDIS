@@ -132,13 +132,13 @@ public class FileInfo {
     public void incrementReplicationDegree(int chunk_no, int sender_id) {
         ChunkInfo chunk = chunks.get(chunk_no);
         if(chunk == null)
-            chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, desired_replication_degree));
+            chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, desired_replication_degree, sender_id));
         else chunk.incrementPerceivedRepDegree(sender_id);
     }
 
     public int getPerceivedRP(int chunk_no) {
         ChunkInfo chunk = chunks.get(chunk_no);
         if(chunk == null) return 0;
-        return chunk.getDesired_rep_deg();
+        return chunk.getPerceived_rep_deg();
     }
 }

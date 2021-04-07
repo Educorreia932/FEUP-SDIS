@@ -68,7 +68,8 @@ public abstract class Channel implements Runnable {
             }
 
             catch (IOException e) {
-                System.err.println("ERROR: Failed to receive packet.");
+                System.err.println("No more messages.");
+                stop();
             }
         }
     }

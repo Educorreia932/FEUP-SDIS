@@ -50,7 +50,7 @@ public class Storage {
                 stream.write(body);
                 chunk_size = body.length;
             }
-            stored_chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree));
+            stored_chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree, peer_id));
             return true;
         }
 
@@ -171,7 +171,7 @@ public class Storage {
         }
     }
 
-    public void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
+    public synchronized void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
         // Updates perceived_rep_deg for BackedUpFiles
         FileInfo file = null;
         for(FileInfo f : backed_up_files.values()){
@@ -181,6 +181,7 @@ public class Storage {
         if(file != null) // If peer backed up the file
             file.incrementReplicationDegree(chunk_no, sender_id);
 
+
         else{
             //Updates perceived_rep-deg for stored chunks
             ChunkInfo chunk = stored_chunks.get(chunk_no);
@@ -189,7 +190,7 @@ public class Storage {
         }
     }
 
-    public int getPerceivedRP(String file_path, int chunk_no){
+    public synchronized int getPerceivedRP(String file_path, int chunk_no){
         FileInfo file = backed_up_files.get(file_path);
         if (file == null) return 0;
         return file.getPerceivedRP(chunk_no);

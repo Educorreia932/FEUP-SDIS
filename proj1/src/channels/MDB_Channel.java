@@ -21,10 +21,11 @@ public class MDB_Channel extends Channel implements Runnable{
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
         if (sender_id == peer.id) return;
 
-        String type = header_fields[1];
+        String type = header_fields[Fields.MSG_TYPE.ordinal()];
+
         if(type.equals("PUTCHUNK")){
-            String chunk_no = header_fields[4];
-            System.out.printf("> Peer %d | %d bytes | PUTCHUNK %s\n", peer.id, msg_len, chunk_no);
+            String chunk_no = header_fields[Fields.CHUNK_NO.ordinal()];
+            System.out.printf("> Peer %d received | %d bytes | PUTCHUNK %s | FROM Peer %d \n", peer.id, msg_len, chunk_no, sender_id);
             peer.putChunk(header_fields, body);
         }
     }

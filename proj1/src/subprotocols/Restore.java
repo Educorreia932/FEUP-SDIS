@@ -24,7 +24,7 @@ public class Restore extends Subprotocol {
     }
 
     @Override
-    public void run() { // TODO: Make sure all chunks are received
+    public void run() {
         int chunk_no = 0;
 
         while (chunk_no < number_of_chunks) {
@@ -37,20 +37,18 @@ public class Restore extends Subprotocol {
                 Thread.sleep(500);
 
                 // Check if received chunk
-                restore_channel.sem.acquire();
                 boolean has_chunk = restore_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
-                restore_channel.sem.release();
 
                 if (has_chunk) { // Chunk received => Skip to next chunk
                     chunk_no++;
                     message.setChunkNo(chunk_no);
                 }
             }
-
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         restore_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
+        System.out.println("RESTORE finished.");
     }
 }

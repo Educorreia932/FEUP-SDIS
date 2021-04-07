@@ -87,7 +87,6 @@ public class Peer implements RMI {
 
         if (chunk == null) {
             System.err.printf("Chunk %d is not stored \n", chunk_no);
-
             return; // Chunk is not stored
         }
 
@@ -97,18 +96,18 @@ public class Peer implements RMI {
 
         // Create Message
         try {
+            // Read chunk
             FileInputStream inputStream = new FileInputStream(chunk.getPath());
             read_bytes = inputStream.read(body); // TODO: Check -1
-            message_bytes = message.getBytes(body, read_bytes);
-        }
 
+            // Send CHUNK msg
+            message_bytes = message.getBytes(body, read_bytes);
+            restore_channel.send(message_bytes);
+            System.out.printf("< Peer %d sent | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
+        }
         catch (IOException e) {
             e.printStackTrace();
         }
-
-        // Send CHUNK msg
-        restore_channel.send(message_bytes);
-        System.out.printf("< Peer %d | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
     }
 
     /**
@@ -137,7 +136,7 @@ public class Peer implements RMI {
             // Send STORED msg
             StoredMessage store_msg = new StoredMessage(version, id, file_id, chunk_no);
             control_channel.send(store_msg.getBytes(null, 0));
-            System.out.printf("< Peer %d | STORED %d\n", id, chunk_no);
+            System.out.printf("< Peer %d sent | STORED %d\n", id, chunk_no);
         }
     }
 

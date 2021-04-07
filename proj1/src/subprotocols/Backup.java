@@ -4,7 +4,6 @@ import channels.MC_Channel;
 import channels.MDB_Channel;
 import messages.PutChunkMessage;
 import peer.Peer;
-import utils.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +32,7 @@ public class Backup extends Subprotocol {
     @Override
     public void run() {
         boolean send_new_chunk = true;
-        int read_bytes, tries = 1, sleep_time = 1000, received_stored_msgs = 0;
+        int read_bytes, tries = 1, sleep_time = 1000, perceived_rp;
         byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
 
         try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
@@ -49,12 +48,13 @@ public class Backup extends Subprotocol {
 
                 // Send message to MDB multicast data channel
                 mdb_channel.send(message_bytes);
-                System.out.printf("< Peer %d | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
+                System.out.printf("< Peer %d sent | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
                 Thread.sleep(sleep_time);
 
-                // TODO: Verify Rep Deg
-                received_stored_msgs = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
-                if (received_stored_msgs < replication_degree) {
+                perceived_rp = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
+                System.out.println("RP: " + perceived_rp + "Desired: " + replication_degree);
+
+                if (perceived_rp < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
                     short MAX_TRIES = 5;
@@ -66,7 +66,6 @@ public class Backup extends Subprotocol {
                     tries++; // Increment number of tries
                     sleep_time *= 2; // Double sleep time
                 }
-
                 else {
                     tries = 1; // Reset tries
                     chunk_no++; // Update chunk
@@ -75,9 +74,9 @@ public class Backup extends Subprotocol {
                 }
             }
         }
-
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("BACKUP finished.");
     }
 }

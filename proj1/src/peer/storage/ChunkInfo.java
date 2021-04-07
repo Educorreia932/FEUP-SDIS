@@ -1,10 +1,8 @@
 package peer.storage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkInfo {
     private String file_id;
@@ -12,23 +10,23 @@ public class ChunkInfo {
     private int size;
     private int desired_rep_deg;
     private int perceived_rep_deg;
-    private Set<Integer> peers;
+    private List<Integer> peers;
 
-    public ChunkInfo(String file_id, int chunk_no, int size, int desired_rep_deg) {
+    public ChunkInfo(String file_id, int chunk_no, int size, int desired_rep_deg, int sender_id) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
         this.size = size;
         this.desired_rep_deg = desired_rep_deg;
         this.perceived_rep_deg = 1;
-        this.peers = new ConcurrentHashMap<Integer, Integer>().keySet();
+        this.peers = new ArrayList<>(Arrays.asList(sender_id));
     }
 
-    public ChunkInfo(String file_id, int chunk_no, int desired_rep_deg) {
+    public ChunkInfo(String file_id, int chunk_no, int desired_rep_deg, int sender_id) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
         this.desired_rep_deg = desired_rep_deg;
         this.perceived_rep_deg = 1;
-        this.peers = new ConcurrentHashMap<Integer, Integer>().keySet();
+        this.peers = new ArrayList<>(Arrays.asList(sender_id));
     }
 
     public String getFile_id() {
@@ -47,23 +45,14 @@ public class ChunkInfo {
         return chunk_no;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ChunkInfo that = (ChunkInfo) o;
-        return chunk_no == that.chunk_no && Objects.equals(file_id, that.file_id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(file_id, chunk_no);
-    }
-
-    public void incrementPerceivedRepDegree(int sender_id) {
+    public synchronized void incrementPerceivedRepDegree(int sender_id) {
         if(!peers.contains(sender_id)){ // Check if sender already sent stored msg
-            //this.peers.add(sender_id); // Add sender TODO: crasha
+            this.peers.add(sender_id); // Add sender
             this.perceived_rep_deg++;  // Increment rep deg
         }
+    }
+
+    public synchronized int getPerceived_rep_deg() {
+        return perceived_rep_deg;
     }
 }
