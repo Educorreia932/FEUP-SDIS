@@ -192,8 +192,10 @@ public class Peer implements RMI {
 
     @Override
     public String getStateInformation() {
-        return ""; // TODO: Fix
-        // return new PeerState(storage).toString();
+        return "----------------- \n BACKED UP FILES\n----------------- \n" +
+                storage.getBackedUpFilesInfo() +
+                "------------------ \n BACKED UP CHUNKS\n------------------ \n" +
+                storage.getBackedUpChunksInfo();
     }
 
     private static void usage() {

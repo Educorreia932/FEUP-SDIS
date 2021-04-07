@@ -32,7 +32,6 @@ public class Storage implements Serializable{
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
-        System.out.println(stored_chunks.size());
         File chunk = getStoredChunk(file_id, chunk_no);
 
         if (chunk != null) // Chunk already stored
@@ -54,7 +53,7 @@ public class Storage implements Serializable{
                 stream.write(body);
                 chunk_size = body.length;
             }
-            String key = file_id + chunk_no;
+            String key = file_id + '/' + chunk_no;
             stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id));
             return true;
         }
@@ -148,7 +147,7 @@ public class Storage implements Serializable{
                 int chunk_no = 0;
                 for (File chunk : chunks) {
                     if(chunk.delete())
-                        stored_chunks.remove(file_id + chunk_no);
+                        stored_chunks.remove(file_id + '/' + chunk_no);
 
                     chunk_no++;
                 }
@@ -190,7 +189,7 @@ public class Storage implements Serializable{
 
         else{
             // Updates perceived_rep-deg for stored chunks
-            Chunk chunk = stored_chunks.get(file_id + chunk_no);
+            Chunk chunk = stored_chunks.get(file_id + '/' + chunk_no);
             if(chunk != null) // If peer has chunk
                 chunk.incrementPerceivedRepDegree(sender_id);
         }
@@ -206,5 +205,40 @@ public class Storage implements Serializable{
         return new AtomicBoolean(
                 backed_up_files.containsValue(new BackedUpFile(file_id))
         );
+    }
+
+    public String getBackedUpFilesInfo() {
+        StringBuilder result = new StringBuilder();
+
+        for (Map.Entry<String, BackedUpFile> entry : backed_up_files.entrySet()) {
+            BackedUpFile file = entry.getValue();
+            result.append("PATH: ").append(file.getPath())
+                    .append("\nID: ").append(file.getId())
+                    .append("\nDESIRED RP: ").append(file.getDesired_replication_degree())
+                    .append('\n');
+
+            for (int chunk_no = 0; chunk_no < file.getNumberOfChunks(); chunk_no++)
+                result.append("CHUNK: ").append(chunk_no)
+                        .append(" - Perceived RP: ").append(file.getPerceivedRP(chunk_no))
+                        .append('\n');
+
+            result.append('\n');
+        }
+        return result.toString();
+    }
+
+    public String getBackedUpChunksInfo() {
+        StringBuilder result = new StringBuilder();
+
+        for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
+            Chunk chunk = entry.getValue();
+            result.append("ID: ").append(entry.getKey())
+                    .append("\nSIZE: ").append(chunk.getSize())
+                    .append("\nDESIRED RP: ").append(chunk.getDesired_rep_deg())
+                    .append("\nPERCEIVED RP: ").append(chunk.getPerceived_rep_deg())
+                    .append('\n');
+        }
+
+        return result.toString();
     }
 }
