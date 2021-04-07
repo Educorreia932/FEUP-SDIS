@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable{
+    private AtomicLong used_space;
     private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private transient final int peer_id;
@@ -20,6 +22,7 @@ public class Storage implements Serializable{
         backed_up_files = new ConcurrentHashMap<>();
         stored_chunks = new ConcurrentHashMap<>();
         this.peer_id = peer_id;
+        this.used_space = new AtomicLong(0);
     }
 
     /**
@@ -54,7 +57,8 @@ public class Storage implements Serializable{
                 chunk_size = body.length;
             }
             String key = file_id + '/' + chunk_no;
-            stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id));
+            if(stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
+                used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
             return true;
         }
 
@@ -146,9 +150,11 @@ public class Storage implements Serializable{
             if (chunks != null) {
                 int chunk_no = 0;
                 for (File chunk : chunks) {
-                    if(chunk.delete())
-                        stored_chunks.remove(file_id + '/' + chunk_no);
-
+                    if(chunk.delete()){
+                        Chunk c = stored_chunks.remove(file_id + '/' + chunk_no);
+                        if(c != null) // Update used space
+                            used_space.set(used_space.get() - c.getSize());
+                    }
                     chunk_no++;
                 }
             }
@@ -240,5 +246,30 @@ public class Storage implements Serializable{
         }
 
         return result.toString();
+    }
+
+    public AtomicLong getUsedSpace(){
+        return used_space;
+    }
+
+    public Chunk removeRandomChunk() {
+        for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
+            Chunk chunk = entry.getValue();
+            if(chunk.getSize() > 0){ // Remove chunk if size of chunk > 0
+                String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFile_id()
+                        + '/' + chunk.getChunk_no(); // Get chunk path
+                File file = new File(path);
+
+                if(file.exists() && !file.isDirectory()) { // If chunk exists
+                    if (file.delete()) { // Delete chunk
+                        System.out.println("Apaguei");
+                        stored_chunks.remove(chunk); // Remove from map
+                        used_space.set(used_space.get() - chunk.getSize()); // Update used_space
+                        return chunk;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

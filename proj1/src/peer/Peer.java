@@ -2,9 +2,11 @@ package peer;
 
 import messages.ChunkMessage;
 import messages.Fields;
+import messages.RemovedMessage;
 import messages.StoredMessage;
 import channels.*;
 import peer.storage.BackedUpFile;
+import peer.storage.Chunk;
 import peer.storage.Storage;
 import subprotocols.*;
 
@@ -189,7 +191,21 @@ public class Peer implements RMI {
 
     @Override
     public void reclaim(int max_space) {
-        System.out.println("Not implemented yet");
+        if(max_space < 0) return; // Ignore negative values
+        System.out.println(storage.getUsedSpace().get());
+        while(storage.getUsedSpace().get() > max_space){
+            Chunk chunk = storage.removeRandomChunk();
+
+            if(chunk == null){
+                System.out.println("No chunks to delete. Aborting...");
+                return;
+            }
+            // Send REMOVED msg
+            RemovedMessage message = new RemovedMessage(version, id, chunk.getFile_id(), chunk.getChunk_no());
+            control_channel.send(message.getBytes(null, 0));
+            System.out.printf("< Peer %d sent | REMOVED %d\n", id, chunk.getChunk_no());
+        }
+
     }
 
     @Override

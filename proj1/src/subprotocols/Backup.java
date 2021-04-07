@@ -77,6 +77,6 @@ public class Backup extends Subprotocol {
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("BACKUP finished.");
+        System.out.println("BACKUP of file " + file.getPath() + " finished.");
     }
 }

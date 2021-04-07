@@ -38,6 +38,10 @@ public class MC_Channel extends Channel {
             case "DELETE":
                 peer.storage.deleteFile(header_fields[Fields.FILE_ID.ordinal()]);
                 break;
+
+            case "REMOVED":
+                // TODO
+                break;
         }
     }
 }
