@@ -182,7 +182,7 @@ public class Storage implements Serializable{
         }
     }
 
-    public synchronized void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
+    public synchronized void updateReplicationDegree(String file_id, int chunk_no, int sender_id, boolean increment) {
         // Updates perceived_rep_deg for BackedUpFiles
         BackedUpFile file = null;
         for(BackedUpFile f : backed_up_files.values()){
@@ -190,14 +190,20 @@ public class Storage implements Serializable{
                 file = f;
         }
         if(file != null) // If peer backed up the file
-            file.incrementReplicationDegree(chunk_no, sender_id);
+            if(increment) // Increment
+                file.incrementReplicationDegree(chunk_no, sender_id);
+            else // Decrement
+                file.decrementReplicationDegree(chunk_no, sender_id);
 
 
         else{
             // Updates perceived_rep-deg for stored chunks
             Chunk chunk = stored_chunks.get(file_id + '/' + chunk_no);
             if(chunk != null) // If peer has chunk
-                chunk.incrementPerceivedRepDegree(sender_id);
+                if(increment) // Increment
+                    chunk.incrementPerceivedRepDegree(sender_id);
+                else // Decrement
+                    chunk.decrementPerceivedRepDegree(sender_id);
         }
     }
 
@@ -262,8 +268,7 @@ public class Storage implements Serializable{
 
                 if(file.exists() && !file.isDirectory()) { // If chunk exists
                     if (file.delete()) { // Delete chunk
-                        System.out.println("Apaguei");
-                        stored_chunks.remove(chunk); // Remove from map
+                        stored_chunks.remove(entry.getKey()); // Remove from map
                         used_space.set(used_space.get() - chunk.getSize()); // Update used_space
                         return chunk;
                     }

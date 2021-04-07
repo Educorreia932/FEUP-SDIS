@@ -141,6 +141,12 @@ public class BackedUpFile implements Serializable {
         else chunk.incrementPerceivedRepDegree(sender_id);
     }
 
+    public void decrementReplicationDegree(int chunk_no, int sender_id) {
+        Chunk chunk = chunks.get(chunk_no);
+        if(chunk != null)
+            chunk.decrementPerceivedRepDegree(sender_id);
+    }
+
     public int getPerceivedRP(int chunk_no) {
         Chunk chunk = chunks.get(chunk_no);
         if(chunk == null) return 0;

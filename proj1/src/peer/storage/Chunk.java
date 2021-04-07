@@ -48,8 +48,18 @@ public class Chunk implements Serializable {
 
     public synchronized void incrementPerceivedRepDegree(int sender_id) {
         if(!peers.contains(sender_id)){ // Check if sender already sent stored msg
-            this.peers.add(sender_id); // Add sender
-            this.perceived_rep_deg++;  // Increment rep deg
+            peers.add(sender_id); // Add sender
+            perceived_rep_deg++;  // Increment rep deg
+        }
+    }
+
+    public synchronized void decrementPerceivedRepDegree(int sender_id) {
+        for(int i = 0; i < peers.size(); i++){
+            if(peers.get(i) == sender_id){ // If peer is registered
+                peers.remove(i); // Remove peer from list
+                perceived_rep_deg--; // Decrement rp
+                break; // Stop search
+            }
         }
     }
 

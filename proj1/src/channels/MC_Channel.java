@@ -15,7 +15,7 @@ public class MC_Channel extends Channel {
         String[] header_fields = Message.getHeaderFields(msg);
 
         // Parse fields
-        String type = header_fields[Fields.MSG_TYPE.ordinal()];
+        String type = header_fields[Fields.MSG_TYPE.ordinal()], file_id;
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]),
         chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
 
@@ -26,9 +26,9 @@ public class MC_Channel extends Channel {
 
         switch (type){
             case "STORED":
-                String file_id = header_fields[Fields.FILE_ID.ordinal()];
-                peer.storage.incrementReplicationDegree(file_id, chunk_no, sender_id);
-                peer.saveStorage();
+                file_id = header_fields[Fields.FILE_ID.ordinal()];
+                // Increment RP
+                peer.storage.updateReplicationDegree(file_id, chunk_no, sender_id, true);
                 break;
 
             case "GETCHUNK":
@@ -40,7 +40,10 @@ public class MC_Channel extends Channel {
                 break;
 
             case "REMOVED":
-                // TODO
+                file_id = header_fields[Fields.FILE_ID.ordinal()];
+                // Decrement RP
+                peer.storage.updateReplicationDegree(file_id, chunk_no, sender_id, false);
+                // TODO: Check if perceived RP is lower than desired RP
                 break;
         }
     }

@@ -220,7 +220,7 @@ public class Peer implements RMI {
         System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
 
-    public void saveStorage(){
+    public void saveStorage(){ // TODO: When to use
         FileOutputStream fileOutputStream = null;
         try {
             fileOutputStream = new FileOutputStream(Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt");
