@@ -4,7 +4,7 @@ import messages.ChunkMessage;
 import messages.Fields;
 import messages.StoredMessage;
 import channels.*;
-import peer.storage.FileInfo;
+import peer.storage.BackedUpFile;
 import peer.storage.Storage;
 import subprotocols.*;
 
@@ -151,7 +151,7 @@ public class Peer implements RMI {
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            FileInfo file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
+            BackedUpFile file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
             Runnable task = new Backup(this, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
                     backup_channel, control_channel);
             pool.execute(task);
@@ -160,7 +160,7 @@ public class Peer implements RMI {
 
     @Override
     public void restoreFile(String file_path) {
-        FileInfo file = storage.getFileInfo(file_path);
+        BackedUpFile file = storage.getFileInfo(file_path);
 
         if (file == null) {
             System.out.println("File to restore needs to be backed up first. Aborting...");
@@ -173,7 +173,7 @@ public class Peer implements RMI {
 
     @Override
     public void deleteFile(String file_path) {
-        FileInfo file = storage.getFileInfo(file_path);
+        BackedUpFile file = storage.getFileInfo(file_path);
 
         if (file == null) {
             System.out.println("File to delete needs to be backed up first. Aborting...");

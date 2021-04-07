@@ -1,19 +1,19 @@
 package peer;
 
-import peer.storage.ChunkInfo;
-import peer.storage.FileInfo;
+import peer.storage.Chunk;
+import peer.storage.BackedUpFile;
 import utils.Pair;
 
 import java.util.HashMap;
 import java.util.Set;
 
 public class PeerState {
-    private Set<ChunkInfo> backed_up_chunks;
-    private HashMap<String, FileInfo> backed_up_files;
+    private Set<Chunk> backed_up_chunks;
+    private HashMap<String, BackedUpFile> backed_up_files;
     private HashMap<Pair<String, Integer>, Integer> stored_chunks;
 
-    public PeerState(HashMap<String, FileInfo> backed_up_files, HashMap<Pair<String, Integer>, Integer> stored_chunks,
-                     Set<ChunkInfo> backed_up_chunks) {
+    public PeerState(HashMap<String, BackedUpFile> backed_up_files, HashMap<Pair<String, Integer>, Integer> stored_chunks,
+                     Set<Chunk> backed_up_chunks) {
         this.backed_up_files = backed_up_files;
         this.stored_chunks = stored_chunks;
         this.backed_up_chunks = backed_up_chunks;
@@ -22,7 +22,7 @@ public class PeerState {
     private String getBackedUpFilesInfo() {
         StringBuilder result = new StringBuilder("----------------- \n BACKED UP FILES\n----------------- \n\n");
         for (String path : backed_up_files.keySet()) {
-            FileInfo file = backed_up_files.get(path);
+            BackedUpFile file = backed_up_files.get(path);
             result.append("PATH: ").append(path).append('\n').append("ID: ").append(file.getId()).append('\n').append("Desired Replication Degree: ").append(file.getDesired_replication_degree()).append('\n');
 
             for (int chunk_no = 0; chunk_no < file.getNumberOfChunks(); chunk_no++) {
@@ -36,7 +36,7 @@ public class PeerState {
 
     private String getBackedUpChunksInfo() {
         StringBuilder result = new StringBuilder("------------------ \n BACKED UP CHUNKS\n------------------ \n\n");
-        for (ChunkInfo chunk : backed_up_chunks)
+        for (Chunk chunk : backed_up_chunks)
             result
                 .append("ID: ")
                 .append(chunk.getFile_id())

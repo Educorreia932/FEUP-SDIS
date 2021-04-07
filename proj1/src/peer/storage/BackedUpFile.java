@@ -10,14 +10,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FileInfo implements Serializable {
+public class BackedUpFile implements Serializable {
     private final String file_id;
     private int number_of_chunks;
     private String path;
     private int desired_replication_degree;
-    private ConcurrentHashMap<Integer, ChunkInfo> chunks;
+    private ConcurrentHashMap<Integer, Chunk> chunks;
 
-    public FileInfo(Path path, int replication_degree) {
+    public BackedUpFile(Path path, int replication_degree) {
         this.path = path.toString();
         String id = getMetadataString(path);
         this.file_id = hash(id);
@@ -33,7 +33,7 @@ public class FileInfo implements Serializable {
         }
     }
 
-    public FileInfo(String file_id) {
+    public BackedUpFile(String file_id) {
         this.file_id = file_id;
     }
 
@@ -125,7 +125,7 @@ public class FileInfo implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        FileInfo that = (FileInfo) o;
+        BackedUpFile that = (BackedUpFile) o;
         return file_id.equals(that.file_id);
     }
 
@@ -135,14 +135,14 @@ public class FileInfo implements Serializable {
     }
 
     public void incrementReplicationDegree(int chunk_no, int sender_id) {
-        ChunkInfo chunk = chunks.get(chunk_no);
+        Chunk chunk = chunks.get(chunk_no);
         if(chunk == null)
-            chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, desired_replication_degree, sender_id));
+            chunks.put(chunk_no, new Chunk(file_id, chunk_no, desired_replication_degree, sender_id));
         else chunk.incrementPerceivedRepDegree(sender_id);
     }
 
     public int getPerceivedRP(int chunk_no) {
-        ChunkInfo chunk = chunks.get(chunk_no);
+        Chunk chunk = chunks.get(chunk_no);
         if(chunk == null) return 0;
         return chunk.getPerceived_rep_deg();
     }

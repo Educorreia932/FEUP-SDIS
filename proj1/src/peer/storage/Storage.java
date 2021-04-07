@@ -1,5 +1,7 @@
 package peer.storage;
 
+import utils.Pair;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -7,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Storage implements Serializable{
-    private final ConcurrentHashMap<String, FileInfo> backed_up_files;
-    private final ConcurrentHashMap<Integer, ChunkInfo> stored_chunks;
+    private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
+    private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private transient final int peer_id;
     public static String FILESYSTEM_FOLDER = "../filesystem/peer";
     public static String BACKUP_FOLDER = "/backup/";
@@ -30,6 +32,7 @@ public class Storage implements Serializable{
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
+        System.out.println(stored_chunks.size());
         File chunk = getStoredChunk(file_id, chunk_no);
 
         if (chunk != null) // Chunk already stored
@@ -51,7 +54,8 @@ public class Storage implements Serializable{
                 stream.write(body);
                 chunk_size = body.length;
             }
-            stored_chunks.put(chunk_no, new ChunkInfo(file_id, chunk_no, chunk_size, replication_degree, peer_id));
+            String key = file_id + chunk_no;
+            stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id));
             return true;
         }
 
@@ -112,7 +116,7 @@ public class Storage implements Serializable{
      * @param file_name Name of file
      * @return File information
      */
-    public FileInfo getFileInfo(String file_name) {
+    public BackedUpFile getFileInfo(String file_name) {
         String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
 
         return backed_up_files.get(file_path);
@@ -125,8 +129,8 @@ public class Storage implements Serializable{
      * @param replication_degree File's replication degree
      * @return Return BackedUpFile corresponding to path
      */
-    public FileInfo addBackedUpFile(Path path, int replication_degree) {
-        FileInfo file = new FileInfo(path, replication_degree);
+    public BackedUpFile addBackedUpFile(Path path, int replication_degree) {
+        BackedUpFile file = new BackedUpFile(path, replication_degree);
         backed_up_files.put(path.toString(), file);
 
         return file;
@@ -143,8 +147,9 @@ public class Storage implements Serializable{
             if (chunks != null) {
                 int chunk_no = 0;
                 for (File chunk : chunks) {
-                    chunk.delete();
-                    stored_chunks.remove(chunk_no);
+                    if(chunk.delete())
+                        stored_chunks.remove(file_id + chunk_no);
+
                     chunk_no++;
                 }
             }
@@ -153,7 +158,7 @@ public class Storage implements Serializable{
         }
     }
 
-    public void removeBackedUpFile(FileInfo file) {
+    public void removeBackedUpFile(BackedUpFile file) {
         backed_up_files.remove(file.getPath());
     }
 
@@ -174,8 +179,8 @@ public class Storage implements Serializable{
 
     public synchronized void incrementReplicationDegree(String file_id, int chunk_no, int sender_id) {
         // Updates perceived_rep_deg for BackedUpFiles
-        FileInfo file = null;
-        for(FileInfo f : backed_up_files.values()){
+        BackedUpFile file = null;
+        for(BackedUpFile f : backed_up_files.values()){
             if(f.getId().equals(file_id))
                 file = f;
         }
@@ -184,22 +189,22 @@ public class Storage implements Serializable{
 
 
         else{
-            //Updates perceived_rep-deg for stored chunks
-            ChunkInfo chunk = stored_chunks.get(chunk_no);
-            if(chunk != null) // If peer Has chunk
+            // Updates perceived_rep-deg for stored chunks
+            Chunk chunk = stored_chunks.get(file_id + chunk_no);
+            if(chunk != null) // If peer has chunk
                 chunk.incrementPerceivedRepDegree(sender_id);
         }
     }
 
     public synchronized int getPerceivedRP(String file_path, int chunk_no){
-        FileInfo file = backed_up_files.get(file_path);
+        BackedUpFile file = backed_up_files.get(file_path);
         if (file == null) return 0;
         return file.getPerceivedRP(chunk_no);
     }
 
     public AtomicBoolean isFileBackedUp(String file_id){
         return new AtomicBoolean(
-                backed_up_files.containsValue(new FileInfo(file_id))
+                backed_up_files.containsValue(new BackedUpFile(file_id))
         );
     }
 }

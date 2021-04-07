@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ChunkInfo implements Serializable {
+public class Chunk implements Serializable {
     private String file_id;
     private int chunk_no;
     private int size;
@@ -13,7 +13,7 @@ public class ChunkInfo implements Serializable {
     private int perceived_rep_deg;
     private List<Integer> peers;
 
-    public ChunkInfo(String file_id, int chunk_no, int size, int desired_rep_deg, int sender_id) {
+    public Chunk(String file_id, int chunk_no, int size, int desired_rep_deg, int sender_id) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
         this.size = size;
@@ -22,7 +22,7 @@ public class ChunkInfo implements Serializable {
         this.peers = new ArrayList<>(Arrays.asList(sender_id));
     }
 
-    public ChunkInfo(String file_id, int chunk_no, int desired_rep_deg, int sender_id) {
+    public Chunk(String file_id, int chunk_no, int desired_rep_deg, int sender_id) {
         this.file_id = file_id;
         this.chunk_no = chunk_no;
         this.desired_rep_deg = desired_rep_deg;
