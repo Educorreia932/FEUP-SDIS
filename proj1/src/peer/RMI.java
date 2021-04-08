@@ -10,7 +10,7 @@ public interface RMI extends Remote {
 
     void deleteFile(String file_pathname) throws RemoteException;
 
-    void reclaim(int max_space) throws RemoteException;
+    void reclaim(long max_space) throws RemoteException;
 
     String getStateInformation() throws RemoteException;
 }

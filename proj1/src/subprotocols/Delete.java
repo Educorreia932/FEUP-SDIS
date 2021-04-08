@@ -9,7 +9,7 @@ public class Delete extends Subprotocol {
     private final DeleteMessage message;
 
     public Delete(Peer initiator_peer, String version, String file_id, MC_Channel control_channel) {
-        super(control_channel, version, initiator_peer, file_id);
+        super(control_channel, version, initiator_peer);
         this.initiator_peer = initiator_peer;
         this.message = new DeleteMessage(version, initiator_peer.id, file_id);
     }

@@ -20,7 +20,7 @@ public class Backup extends Subprotocol {
 
     public Backup(Peer initiator_peer, String version, File file, String file_id, int number_of_chunks,
                   int replication_degree, MDB_Channel mdb_channel, MC_Channel control_channel) {
-        super(control_channel, version, initiator_peer, file_id);
+        super(control_channel, version, initiator_peer);
 
         this.file = file;
         this.replication_degree = replication_degree;

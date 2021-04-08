@@ -14,7 +14,7 @@ public class Restore extends Subprotocol {
     private final GetChunkMessage message;
 
     public Restore(Peer initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel restore_channel, MC_Channel control_channel) {
-        super(control_channel, version, initiator_peer, file_id);
+        super(control_channel, version, initiator_peer);
 
         this.restore_channel = restore_channel;
         this.number_of_chunks = number_of_chunks;

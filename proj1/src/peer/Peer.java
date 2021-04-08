@@ -195,22 +195,11 @@ public class Peer implements RMI {
     }
 
     @Override
-    public void reclaim(int max_space) {
+    public void reclaim(long max_space) {
         if(max_space < 0) return; // Ignore negative values
-        while(storage.getUsedSpace().get() > max_space){
-            Chunk chunk = storage.removeRandomChunk(); // Remove a chunk
 
-            if(chunk == null){
-                System.out.println("No chunks to delete. Aborting...");
-                return;
-            }
-
-            // Send REMOVED msg
-            RemovedMessage message = new RemovedMessage(version, id, chunk.getFile_id(), chunk.getChunk_no());
-            control_channel.send(message.getBytes(null, 0));
-            System.out.printf("< Peer %d sent | REMOVED %d\n", id, chunk.getChunk_no());
-        }
-        System.out.println("Finished Reclaim.");
+        Reclaim task = new Reclaim(control_channel,version, this, max_space);
+        pool.execute(task);
     }
 
     @Override

@@ -60,7 +60,7 @@ public class TestApp {
                         System.exit(1);
                     }
 
-                    stub.reclaim(Integer.parseInt(args[2]));
+                    stub.reclaim(Long.parseLong(args[2]));
 
                     break;
 
