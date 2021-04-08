@@ -1,9 +1,6 @@
 package peer;
 
-import messages.ChunkMessage;
-import messages.Fields;
-import messages.RemovedMessage;
-import messages.StoredMessage;
+import messages.*;
 import channels.*;
 import peer.storage.BackedUpFile;
 import peer.storage.Chunk;
@@ -83,7 +80,7 @@ public class Peer implements RMI {
     public void getChunk(String[] header) {
         String file_id = header[Fields.FILE_ID.ordinal()];
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
-        File chunk = storage.getStoredChunk(file_id, chunk_no);
+        File chunk = storage.getChunkFile(file_id, chunk_no);
 
         if (chunk == null) {
             System.err.printf("Chunk %d is not stored \n", chunk_no);
@@ -192,9 +189,8 @@ public class Peer implements RMI {
     @Override
     public void reclaim(int max_space) {
         if(max_space < 0) return; // Ignore negative values
-        System.out.println(storage.getUsedSpace().get());
         while(storage.getUsedSpace().get() > max_space){
-            Chunk chunk = storage.removeRandomChunk();
+            Chunk chunk = storage.removeRandomChunk(); // Remove a chunk
 
             if(chunk == null){
                 System.out.println("No chunks to delete. Aborting...");
@@ -205,7 +201,7 @@ public class Peer implements RMI {
             control_channel.send(message.getBytes(null, 0));
             System.out.printf("< Peer %d sent | REMOVED %d\n", id, chunk.getChunk_no());
         }
-
+        System.out.println("Finished Reclaim.");
     }
 
     @Override
@@ -231,6 +227,40 @@ public class Peer implements RMI {
             objectOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void fixChunkRP(String file_id, int chunk_no) {
+        Chunk chunk = storage.getStoredChunk(file_id, chunk_no);
+        if(chunk != null && chunk.needsBackUp()){
+            File chunk_file = storage.getChunkFile(file_id, chunk_no);
+
+            if(chunk_file != null){
+                int read_bytes = 0;
+                byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
+                PutChunkMessage message = new PutChunkMessage(version, id, file_id, chunk.getDesired_rep_deg(), chunk_no);
+
+                // Create Message
+                try {
+                    // Read chunk
+                    FileInputStream inputStream = new FileInputStream(chunk_file.getPath());
+
+                    if(inputStream.available() > 0) // Check if empty
+                        read_bytes = inputStream.read(body); // Read chunk
+
+                    // Get message byte array
+                    message_bytes = message.getBytes(body, read_bytes);
+
+                    // TODO: Abort if received putchunk
+                    Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
+
+                    restore_channel.send(message_bytes); // Send message
+                    System.out.printf("< Peer %d sent | bytes %d | PUTCHUNK %d\n", id, message_bytes.length, chunk_no);
+                }
+                catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

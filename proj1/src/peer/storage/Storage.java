@@ -1,7 +1,5 @@
 package peer.storage;
 
-import utils.Pair;
-
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -35,7 +33,7 @@ public class Storage implements Serializable{
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
-        File chunk = getStoredChunk(file_id, chunk_no);
+        File chunk = getChunkFile(file_id, chunk_no);
 
         if (chunk != null) // Chunk already stored
             return true;
@@ -76,7 +74,7 @@ public class Storage implements Serializable{
      * @param chunk_no Number of chunk
      * @return Returns the if chunk its already stored. Null otherwise.
      */
-    public File getStoredChunk(String file_id, int chunk_no) {
+    public File getChunkFile(String file_id, int chunk_no) {
         String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
         File file = new File(path);
 
@@ -276,5 +274,9 @@ public class Storage implements Serializable{
             }
         }
         return null;
+    }
+
+    public Chunk getStoredChunk(String file_id, int chunk_no) {
+        return stored_chunks.get(file_id + '/' + chunk_no);
     }
 }

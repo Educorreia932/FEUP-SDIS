@@ -66,4 +66,8 @@ public class Chunk implements Serializable {
     public synchronized int getPerceived_rep_deg() {
         return perceived_rep_deg;
     }
+
+    public boolean needsBackUp() {
+        return perceived_rep_deg < desired_rep_deg;
+    }
 }

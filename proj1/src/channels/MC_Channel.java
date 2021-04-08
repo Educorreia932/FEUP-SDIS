@@ -44,6 +44,7 @@ public class MC_Channel extends Channel {
                 // Decrement RP
                 peer.storage.updateReplicationDegree(file_id, chunk_no, sender_id, false);
                 // TODO: Check if perceived RP is lower than desired RP
+                peer.fixChunkRP(file_id, chunk_no);
                 break;
         }
     }
