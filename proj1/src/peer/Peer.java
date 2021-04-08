@@ -153,6 +153,7 @@ public class Peer implements RMI {
 
     @Override
     public void backupFile(String file_pathname, int replication_degree) {
+        // TODO: Verificar se sofreu alteraçoes
         File file = storage.getFile(file_pathname, id);
 
         if (file == null)
@@ -257,7 +258,7 @@ public class Peer implements RMI {
 
             if(chunk_file != null){
                 int read_bytes = 0;
-                byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
+                byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes;
                 PutChunkMessage message = new PutChunkMessage(version, id, file_id, chunk.getDesired_rep_deg(), chunk_no);
 
                 // Create Message
@@ -265,13 +266,13 @@ public class Peer implements RMI {
                     // Read chunk
                     FileInputStream inputStream = new FileInputStream(chunk_file.getPath());
 
-                    if(inputStream.available() > 0) // Check if empty
+                    if (inputStream.available() > 0)         // Check if empty
                         read_bytes = inputStream.read(body); // Read chunk
 
                     // Get message byte array
                     message_bytes = message.getBytes(body, read_bytes);
 
-                    // TODO: Abort if received putchunk
+                    // TODO: Abort if received PUTCHUNK
                     Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
 
                     restore_channel.send(message_bytes); // Send message
