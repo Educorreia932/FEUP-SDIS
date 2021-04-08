@@ -103,15 +103,15 @@ public class Peer implements RMI {
             // Read chunk
             FileInputStream inputStream = new FileInputStream(chunk.getPath());
 
-            if(inputStream.available() > 0) // Check if empty
+            if (inputStream.available() > 0) // Check if empty
                 read_bytes = inputStream.read(body); // Read chunk
 
             // Get message byte array
             message_bytes = message.getBytes(body, read_bytes);
 
             restore_channel.received_chunk_msg.set(false);
-            Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
-            if(restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
+            Thread.sleep(new Random().nextInt(400));       // Sleep (0-400)ms
+            if (restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
 
             restore_channel.send(message_bytes); // Send message
             System.out.printf("< Peer %d sent | bytes %d | CHUNK %d\n", id, message_bytes.length, chunk_no);
@@ -130,7 +130,7 @@ public class Peer implements RMI {
     public void putChunk(String[] header, byte[] body) {
         // Parse fields
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]),
-        replication_degree = Integer.parseInt(header[Fields.REP_DEG.ordinal()]);
+                replication_degree = Integer.parseInt(header[Fields.REP_DEG.ordinal()]);
         String version = header[Fields.VERSION.ordinal()],
                 file_id = header[Fields.FILE_ID.ordinal()];
 
@@ -152,17 +152,23 @@ public class Peer implements RMI {
     }
 
     @Override
-    public void backupFile(String file_pathname, int replication_degree) {
-        // TODO: Verificar se sofreu alteraçoes
-        File file = storage.getFile(file_pathname, id);
+    public void backupFile(String filename, int replication_degree) {
+        File file = storage.getFile(filename, id);
 
         if (file == null)
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
         else {
-            BackedUpFile file_info = storage.addBackedUpFile(file.toPath(), replication_degree);
-            Runnable task = new Backup(this, version, file, file_info.getId(), file_info.getNumberOfChunks(), replication_degree,
-                    backup_channel, control_channel);
+            BackedUpFile new_file = new BackedUpFile(file.toPath(), replication_degree);
+            String old_file_id = storage.wasFileModified(file.getPath(), new_file.getId());
+            if (old_file_id != null) { // File was modified
+                Delete delete_task = new Delete(this, version, old_file_id, control_channel);
+                pool.execute(delete_task);
+            }
+
+            storage.addBackedUpFile(new_file);
+            Runnable task = new Backup(this, version, file, new_file.getId(), new_file.getNumberOfChunks(),
+                    replication_degree, backup_channel, control_channel);
             pool.execute(task);
         }
     }
@@ -196,9 +202,9 @@ public class Peer implements RMI {
 
     @Override
     public void reclaim(long max_space) {
-        if(max_space < 0) return; // Ignore negative values
+        if (max_space < 0) return; // Ignore negative values
 
-        Reclaim task = new Reclaim(control_channel,version, this, max_space);
+        Reclaim task = new Reclaim(control_channel, version, this, max_space);
         pool.execute(task);
     }
 
@@ -218,7 +224,7 @@ public class Peer implements RMI {
         FileOutputStream fileOutputStream;
 
         try {
-            fileOutputStream = new FileOutputStream(Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt");
+            fileOutputStream = new FileOutputStream(getBackupPath());
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
             objectOutputStream.writeObject(storage);
@@ -232,20 +238,19 @@ public class Peer implements RMI {
     }
 
     public void loadStorage() throws IOException, ClassNotFoundException {
-        String filePath = Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt";
-
-        FileInputStream fileInputStream = new FileInputStream(filePath);
-        ObjectInputStream objectInputStream  = new ObjectInputStream(fileInputStream);
+        FileInputStream fileInputStream = new FileInputStream(getBackupPath());
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
         this.storage = (Storage) objectInputStream.readObject();
     }
 
-    public void fixChunkRP(String file_id, int chunk_no) {
+    public void updateChunkRP(String file_id, int chunk_no) {
         Chunk chunk = storage.getStoredChunk(file_id, chunk_no);
-        if(chunk != null && chunk.needsBackUp()){
+
+        if (chunk != null && chunk.needsBackUp()) {
             File chunk_file = storage.getChunkFile(file_id, chunk_no);
 
-            if(chunk_file != null){
+            if (chunk_file != null) {
                 int read_bytes = 0;
                 byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes;
                 PutChunkMessage message = new PutChunkMessage(version, id, file_id, chunk.getDesired_rep_deg(), chunk_no);
@@ -272,5 +277,9 @@ public class Peer implements RMI {
                 }
             }
         }
+    }
+
+    public String getBackupPath() {
+        return Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt";
     }
 }

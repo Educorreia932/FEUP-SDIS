@@ -130,11 +130,8 @@ public class Storage implements Serializable{
      * @param replication_degree File's replication degree
      * @return Return BackedUpFile corresponding to path
      */
-    public BackedUpFile addBackedUpFile(Path path, int replication_degree) {
-        BackedUpFile file = new BackedUpFile(path, replication_degree);
-        backed_up_files.put(path.toString(), file);
-
-        return file;
+    public void addBackedUpFile(BackedUpFile file) {
+        backed_up_files.put(file.getPath(), file);
     }
 
     public void deleteFile(String file_id) {
@@ -278,5 +275,14 @@ public class Storage implements Serializable{
 
     public Chunk getStoredChunk(String file_id, int chunk_no) {
         return stored_chunks.get(file_id + '/' + chunk_no);
+    }
+
+    public String wasFileModified(String file_path, String new_file_id) {
+        BackedUpFile old_file = backed_up_files.get(file_path);
+
+        if (old_file != null && !old_file.getId().equals(new_file_id))
+            return old_file.getId();
+
+        return null;
     }
 }
