@@ -73,9 +73,15 @@ public class Peer implements RMI {
             System.exit(-1);
         }
 
-        // Set up storage
-        storage = new Storage(id);
-        storage.makeDirectories();
+        try {
+            loadStorage(); // Load storage if exists
+        }
+
+        catch (IOException | ClassNotFoundException e) {
+            // Set up storage
+            storage = new Storage(id);
+            storage.makeDirectories();
+        }
     }
 
     public void getChunk(String[] header) {
@@ -218,7 +224,7 @@ public class Peer implements RMI {
         System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
 
-    public void saveStorage() { // TODO: When to use
+    public void saveStorage() {
         FileOutputStream fileOutputStream;
 
         try {
@@ -235,19 +241,13 @@ public class Peer implements RMI {
         }
     }
 
-    public void loadStorage() {
+    public void loadStorage() throws IOException, ClassNotFoundException {
         String filePath = Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt";
 
-        try {
-            FileInputStream fileInputStream = new FileInputStream(filePath);
-            ObjectInputStream objectInputStream  = new ObjectInputStream(fileInputStream);
+        FileInputStream fileInputStream = new FileInputStream(filePath);
+        ObjectInputStream objectInputStream  = new ObjectInputStream(fileInputStream);
 
-            this.storage = (Storage) objectInputStream.readObject();
-        }
-
-        catch (IOException | ClassNotFoundException e) {
-            System.err.println("Failed to read " + filePath + ", "+ e);
-        }
+        this.storage = (Storage) objectInputStream.readObject();
     }
 
     public void fixChunkRP(String file_id, int chunk_no) {

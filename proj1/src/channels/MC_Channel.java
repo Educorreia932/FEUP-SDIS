@@ -29,6 +29,7 @@ public class MC_Channel extends Channel {
                 file_id = header_fields[Fields.FILE_ID.ordinal()];
                 // Increment RP
                 peer.storage.updateReplicationDegree(file_id, chunk_no, sender_id, true);
+                peer.saveStorage(); // Update storage
                 break;
 
             case "GETCHUNK":
@@ -37,14 +38,15 @@ public class MC_Channel extends Channel {
 
             case "DELETE":
                 peer.storage.deleteFile(header_fields[Fields.FILE_ID.ordinal()]);
+                peer.saveStorage(); // Update storage
                 break;
 
             case "REMOVED":
                 file_id = header_fields[Fields.FILE_ID.ordinal()];
                 // Decrement RP
                 peer.storage.updateReplicationDegree(file_id, chunk_no, sender_id, false);
-                // TODO: Check if perceived RP is lower than desired RP
-                peer.fixChunkRP(file_id, chunk_no);
+                peer.fixChunkRP(file_id, chunk_no); // Check if perceived RP < Desired RP
+                peer.saveStorage(); // Update storage
                 break;
         }
     }
