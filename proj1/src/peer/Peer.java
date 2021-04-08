@@ -202,7 +202,8 @@ public class Peer implements RMI {
 
     @Override
     public void reclaim(long max_space) {
-        if (max_space < 0) return; // Ignore negative values
+        if (max_space < 0)
+            return; // Ignore negative values
 
         Reclaim task = new Reclaim(control_channel, version, this, max_space);
         pool.execute(task);

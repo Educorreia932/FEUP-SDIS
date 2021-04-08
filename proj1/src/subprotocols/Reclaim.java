@@ -16,6 +16,9 @@ public class Reclaim extends Subprotocol {
 
     @Override
     public void run() {
+        // Store
+        initiator_peer.storage.setMaxSpace(max_space);
+
         while(initiator_peer.storage.getUsedSpace().get() > max_space) {
             Chunk chunk = initiator_peer.storage.removeRandomChunk(); // Remove a chunk
 

@@ -11,18 +11,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable {
+    private final AtomicLong max_space;
     private final AtomicLong used_space;
     private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private final int peer_id;
-    public static String FILESYSTEM_FOLDER = "../filesystem/peer";
-    public static String BACKUP_FOLDER = "/backup/";
+    public static final String FILESYSTEM_FOLDER = "../filesystem/peer";
+    public static final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
 
     public Storage(int peer_id) {
         backed_up_files = new ConcurrentHashMap<>();
         stored_chunks = new ConcurrentHashMap<>();
         this.peer_id = peer_id;
+        this.max_space = new AtomicLong(Long.MAX_VALUE);
         this.used_space = new AtomicLong(0);
     }
 
@@ -41,7 +43,10 @@ public class Storage implements Serializable {
         if (chunk != null) // Chunk already stored
             return true;
 
-        if (isFileBackedUp(file_id).get())
+        if (isFileBackedUp(file_id).get()) //  This peer has original file
+            return false;
+
+        if (used_space.get() + body.length > max_space.get()) // No space for chunk
             return false;
 
         String path = getBackupFilePath(file_id);
@@ -50,19 +55,23 @@ public class Storage implements Serializable {
         if (!directory.exists())     // Create folder for file
             if (!directory.mkdirs()) {
                 System.err.println("ERROR: Failed to create directory to store chunk.");
+
                 return false;
             }
 
         try (FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no)) {
             int chunk_size = 0;
 
-            if (body != null) { // Don't write if empty chunk
+            if (body.length != 0) { // Don't write if empty chunk
                 stream.write(body);
                 chunk_size = body.length;
             }
+
             String key = file_id + '/' + chunk_no;
+
             if (stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
                 used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
+
             return true;
         }
 
@@ -295,5 +304,9 @@ public class Storage implements Serializable {
 
     public static String getBackupPath(int peer_id) {
         return Storage.FILESYSTEM_FOLDER + peer_id + "/storageBackup.txt";
+    }
+
+    public void setMaxSpace(long value) {
+        max_space.set(value);
     }
 }
