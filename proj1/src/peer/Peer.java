@@ -87,7 +87,7 @@ public class Peer implements RMI {
     public void getChunk(String[] header) {
         String file_id = header[Fields.FILE_ID.ordinal()];
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
-        File chunk = storage.getChunkFile(file_id, chunk_no);
+        File chunk = storage.getFile(file_id, chunk_no);
 
         if (chunk == null) {
             System.err.printf("Chunk %d is not stored \n", chunk_no);
@@ -212,9 +212,9 @@ public class Peer implements RMI {
     @Override
     public String getStateInformation() {
         return "----------------- \n BACKED UP FILES\n----------------- \n" +
-                storage.getBackedUpFilesInfo() +
+                storage.getBackedUpFilesState() +
                 "------------------ \n BACKED UP CHUNKS\n------------------ \n" +
-                storage.getBackedUpChunksInfo();
+                storage.getBackedUpChunksState();
     }
 
     private static void usage() {
@@ -225,7 +225,7 @@ public class Peer implements RMI {
         FileOutputStream fileOutputStream;
 
         try {
-            fileOutputStream = new FileOutputStream(Storage.getBackupPath(id));
+            fileOutputStream = new FileOutputStream(Storage.getStoragePath(id));
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
             objectOutputStream.writeObject(storage);
@@ -239,7 +239,7 @@ public class Peer implements RMI {
     }
 
     public void loadStorage() throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(Storage.getBackupPath(id));
+        FileInputStream fileInputStream = new FileInputStream(Storage.getStoragePath(id));
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
         this.storage = (Storage) objectInputStream.readObject();
@@ -249,32 +249,19 @@ public class Peer implements RMI {
         Chunk chunk = storage.getStoredChunk(file_id, chunk_no);
 
         if (chunk != null && chunk.needsBackUp()) {
-            File chunk_file = storage.getChunkFile(file_id, chunk_no);
+            File chunk_file = storage.getFile(file_id, chunk_no);
 
             if (chunk_file != null) {
-                int read_bytes = 0;
-                byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes;
-                PutChunkMessage message = new PutChunkMessage(version, id, file_id, chunk.getDesired_rep_deg(), chunk_no);
-
-                // Create Message
                 try {
-                    // Read chunk
-                    FileInputStream inputStream = new FileInputStream(chunk_file.getPath());
-
-                    if (inputStream.available() > 0)         // Check if empty
-                        read_bytes = inputStream.read(body); // Read chunk
-
-                    // Get message byte array
-                    message_bytes = message.getBytes(body, read_bytes);
-
                     // TODO: Abort if received PUTCHUNK
                     Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
 
-                    backup_channel.send(message_bytes); // Send message
-                    System.out.printf("< Peer %d sent | bytes %d | PUTCHUNK %d\n", id, message_bytes.length, chunk_no);
+                    Backup task = new Backup(this, version, chunk_file, chunk.getFile_id(),
+                            1, chunk.getDesired_rep_deg(), backup_channel, control_channel);
+                    pool.execute(task);
                 }
 
-                catch (IOException | InterruptedException e) {
+                catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }

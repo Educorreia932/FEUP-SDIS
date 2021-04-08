@@ -150,6 +150,6 @@ public class BackedUpFile implements Serializable {
     public int getPerceivedRP(int chunk_no) {
         Chunk chunk = chunks.get(chunk_no);
         if(chunk == null) return 0;
-        return chunk.getPerceived_rep_deg();
+        return chunk.getPerceivedRP();
     }
 }

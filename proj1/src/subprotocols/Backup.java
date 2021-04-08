@@ -56,7 +56,7 @@ public class Backup extends Subprotocol {
             e.printStackTrace();
         }
 
-        System.out.println("BACKUP of file " + file.getPath() + " finished.");
+        System.out.println("BACKUP of " + file.getPath() + " finished.");
     }
 
     public boolean sendPutChunk(byte[] message_bytes, int chunk_no) throws InterruptedException {

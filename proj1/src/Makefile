@@ -22,9 +22,11 @@ peer1:
 peer2:
 	java -cp $(OUT_DIR) peer.Peer 1.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
-
 peer3:
 	java -cp $(OUT_DIR) peer.Peer 1.0 3 3 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+
+peer4:
+	java -cp $(OUT_DIR) peer.Peer 1.0 4 4 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
 	java -cp $(OUT_DIR) test.TestApp 1 BACKUP isto.txt 2

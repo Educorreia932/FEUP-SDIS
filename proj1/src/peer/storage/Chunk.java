@@ -63,7 +63,7 @@ public class Chunk implements Serializable {
         }
     }
 
-    public synchronized int getPerceived_rep_deg() {
+    public synchronized int getPerceivedRP() {
         return perceived_rep_deg;
     }
 

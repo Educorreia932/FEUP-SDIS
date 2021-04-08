@@ -11,11 +11,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable {
+    private final int peer_id;
     private final AtomicLong max_space;
     private final AtomicLong used_space;
-    private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
-    private final int peer_id;
+    private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
     public static final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public static final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
@@ -38,28 +38,27 @@ public class Storage implements Serializable {
      * @return True if chunk is stored, false otherwise
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
-        File chunk = getChunkFile(file_id, chunk_no);
+        File chunk = getFile(file_id, chunk_no);
 
         if (chunk != null) // Chunk already stored
             return true;
 
-        if (isFileBackedUp(file_id).get()) //  This peer has original file
+        if (isFileBackedUp(file_id).get()) //  This peer has original file - cant store chunks
             return false;
 
         if (used_space.get() + body.length > max_space.get()) // No space for chunk
             return false;
 
-        String path = getBackupFilePath(file_id);
+        String path = getFilePath(file_id);
         File directory = new File(path);
 
         if (!directory.exists())     // Create folder for file
-            if (!directory.mkdirs()) {
-                System.err.println("ERROR: Failed to create directory to store chunk.");
+            if (!directory.mkdirs())
+                return false; // Failed to create folder to store chunk
 
-                return false;
-            }
+        String chunk_path = getFilePath(file_id, chunk_no);
 
-        try (FileOutputStream stream = new FileOutputStream(path + '/' + chunk_no)) {
+        try (FileOutputStream stream = new FileOutputStream(chunk_path)) {
             int chunk_size = 0;
 
             if (body.length != 0) { // Don't write if empty chunk
@@ -67,9 +66,8 @@ public class Storage implements Serializable {
                 chunk_size = body.length;
             }
 
-            String key = file_id + '/' + chunk_no;
 
-            if (stored_chunks.put(key, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
+            if (stored_chunks.put(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
                 used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
 
             return true;
@@ -97,7 +95,7 @@ public class Storage implements Serializable {
     }
 
     public void deleteFile(String file_id) {
-        String path = getBackupFilePath(file_id);
+        String path = getFilePath(file_id);
         File folder = new File(path);
 
         if (folder.exists() && folder.isDirectory()) {
@@ -108,7 +106,7 @@ public class Storage implements Serializable {
                 int chunk_no = 0;
                 for (File chunk : chunks) {
                     if (chunk.delete()) {
-                        Chunk c = stored_chunks.remove(file_id + '/' + chunk_no);
+                        Chunk c = stored_chunks.remove(getFilePath(file_id, chunk_no));
                         if (c != null) // Update used space
                             used_space.set(used_space.get() - c.getSize());
                     }
@@ -156,7 +154,7 @@ public class Storage implements Serializable {
 
         else {
             // Updates perceived_rep-deg for stored chunks
-            Chunk chunk = stored_chunks.get(file_id + '/' + chunk_no);
+            Chunk chunk = stored_chunks.get(getFilePath(file_id, chunk_no));
             if (chunk != null) // If peer has chunk
                 if (increment) // Increment
                     chunk.incrementPerceivedRepDegree(sender_id);
@@ -178,16 +176,13 @@ public class Storage implements Serializable {
                         + '/' + chunk.getChunk_no(); // Get chunk path
                 File file = new File(path);
 
-                if (file.exists() && !file.isDirectory()) { // If chunk exists
-                    if (file.delete()) { // Delete chunk
-                        stored_chunks.remove(entry.getKey()); // Remove from map
-                        used_space.set(used_space.get() - chunk.getSize()); // Update used_space
-                        return chunk;
-                    }
+                if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
+                    stored_chunks.remove(entry.getKey()); // Remove from map
+                    used_space.set(used_space.get() - chunk.getSize()); // Update used_space
+                    return chunk;
                 }
             }
         }
-
         return null;
     }
 
@@ -200,15 +195,10 @@ public class Storage implements Serializable {
         return null;
     }
 
-    /**
-     * Returns file chunk
-     *
-     * @param file_id  ID of file
-     * @param chunk_no Number of chunk
-     * @return Returns the if chunk its already stored. Null otherwise.
-     */
-    public File getChunkFile(String file_id, int chunk_no) {
-        String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
+    /* -- GETTERS -- */
+
+    public File getFile(String file_id, int chunk_no) {
+        String path = getFilePath(file_id, chunk_no);
         File file = new File(path);
 
         if (file.exists() && !file.isDirectory())
@@ -217,12 +207,6 @@ public class Storage implements Serializable {
         return null;
     }
 
-    /**
-     * Returns file with path equal to file_pathname
-     *
-     * @param file_pathname Path to file
-     * @return File if it exists, null otherwise
-     */
     public File getFile(String file_pathname) {
         String path = FILESYSTEM_FOLDER + peer_id + '/' + file_pathname.trim();
         File file = new File(path);
@@ -233,19 +217,12 @@ public class Storage implements Serializable {
         return null;
     }
 
-    /**
-     * Returns file information for the path given, if it was backed up
-     *
-     * @param file_name Name of file
-     * @return File information
-     */
     public BackedUpFile getFileInfo(String file_name) {
         String file_path = FILESYSTEM_FOLDER + peer_id + '/' + file_name;
-
         return backed_up_files.get(file_path);
     }
 
-    public String getBackedUpFilesInfo() {
+    public String getBackedUpFilesState() {
         StringBuilder result = new StringBuilder();
 
         for (Map.Entry<String, BackedUpFile> entry : backed_up_files.entrySet()) {
@@ -266,7 +243,7 @@ public class Storage implements Serializable {
         return result.toString();
     }
 
-    public String getBackedUpChunksInfo() {
+    public String getBackedUpChunksState() {
         StringBuilder result = new StringBuilder();
 
         for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
@@ -274,7 +251,7 @@ public class Storage implements Serializable {
             result.append("ID: ").append(entry.getKey())
                     .append("\nSIZE: ").append(chunk.getSize())
                     .append("\nDESIRED RP: ").append(chunk.getDesired_rep_deg())
-                    .append("\nPERCEIVED RP: ").append(chunk.getPerceived_rep_deg())
+                    .append("\nPERCEIVED RP: ").append(chunk.getPerceivedRP())
                     .append('\n');
         }
 
@@ -286,25 +263,34 @@ public class Storage implements Serializable {
     }
 
     public Chunk getStoredChunk(String file_id, int chunk_no) {
-        return stored_chunks.get(file_id + '/' + chunk_no);
+        return stored_chunks.get(getFilePath(file_id, chunk_no));
     }
 
     public synchronized int getPerceivedRP(String file_path, int chunk_no) {
         BackedUpFile file = backed_up_files.get(file_path);
+        if (file != null)
+            return file.getPerceivedRP(chunk_no);
 
-        if (file == null)
-            return 0;
+        Chunk chunk = stored_chunks.get(file_path);
+        if(chunk != null)
+            return chunk.getPerceivedRP();
 
-        return file.getPerceivedRP(chunk_no);
+        return 0;
     }
 
-    public String getBackupFilePath(String file_id) {
+    public String getFilePath(String file_id) {
         return FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id;
     }
 
-    public static String getBackupPath(int peer_id) {
+    public String getFilePath(String file_id, int chunk_no) {
+        return FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + file_id + '/' + chunk_no;
+    }
+
+    public static String getStoragePath(int peer_id) {
         return Storage.FILESYSTEM_FOLDER + peer_id + "/storageBackup.txt";
     }
+
+    /* -- SETTERS -- */
 
     public void setMaxSpace(long value) {
         max_space.set(value);
