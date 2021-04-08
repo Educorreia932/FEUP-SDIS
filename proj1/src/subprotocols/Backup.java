@@ -43,6 +43,7 @@ public class Backup extends Subprotocol {
                     // Read from file
                     if ((read_bytes = inputStream.read(chunk)) == -1)
                         read_bytes = 0; // Reached EOF
+                    
                     message_bytes = message.getBytes(chunk, read_bytes);
                 }
 
@@ -51,32 +52,37 @@ public class Backup extends Subprotocol {
                 System.out.printf("< Peer %d sent | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
                 Thread.sleep(sleep_time);
 
-                // Check perceived RP
+                // Check perceived replication degree
                 perceived_rp = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
 
                 if (perceived_rp < replication_degree) {
                     send_new_chunk = false; // Resend chunk
 
                     short MAX_TRIES = 5;
+
                     if (tries >= MAX_TRIES) {
                         System.out.println("Failed to achieve desired replication degree. Giving up...");
-                        break; // Max tries => give up
+
+                        break;        // Max tries => give up
                     }
 
-                    tries++; // Increment number of tries
-                    sleep_time *= 2; // Double sleep time
+                    tries++;          // Increment number of tries
+                    sleep_time *= 2;  // Double sleep time
                 }
+                
                 else {
-                    tries = 1; // Reset tries
-                    chunk_no++; // Update chunk
-                    sleep_time = 1000; // Reset sleep time to 1s
-                    send_new_chunk = true; // Send new chunk
+                    tries = 1;              // Reset tries
+                    chunk_no++;             // Update chunk
+                    sleep_time = 1000;      // Reset sleep time to 1s
+                    send_new_chunk = true;  // Send new chunk
                 }
             }
         }
+
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
         System.out.println("BACKUP of file " + file.getPath() + " finished.");
     }
 }

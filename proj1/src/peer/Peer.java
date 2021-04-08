@@ -25,7 +25,7 @@ public class Peer implements RMI {
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
     private ExecutorService pool;
-    public final Storage storage;
+    public Storage storage;
 
     public static void main(String[] args) {
         if (args.length != 9) {
@@ -50,6 +50,7 @@ public class Peer implements RMI {
         }
 
         peer.pool = Executors.newCachedThreadPool();
+
         // Start listening on channels
         peer.pool.execute(peer.backup_channel);
         peer.pool.execute(peer.control_channel);
@@ -88,7 +89,7 @@ public class Peer implements RMI {
         }
 
         int read_bytes = 0;
-        byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes = null;
+        byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes;
         ChunkMessage message = new ChunkMessage(version, id, file_id, chunk_no);
 
         // Create Message
@@ -196,6 +197,7 @@ public class Peer implements RMI {
                 System.out.println("No chunks to delete. Aborting...");
                 return;
             }
+
             // Send REMOVED msg
             RemovedMessage message = new RemovedMessage(version, id, chunk.getFile_id(), chunk.getChunk_no());
             control_channel.send(message.getBytes(null, 0));
@@ -216,8 +218,9 @@ public class Peer implements RMI {
         System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
 
-    public void saveStorage(){ // TODO: When to use
-        FileOutputStream fileOutputStream = null;
+    public void saveStorage() { // TODO: When to use
+        FileOutputStream fileOutputStream;
+
         try {
             fileOutputStream = new FileOutputStream(Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt");
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
@@ -225,8 +228,25 @@ public class Peer implements RMI {
             objectOutputStream.writeObject(storage);
             objectOutputStream.flush();
             objectOutputStream.close();
-        } catch (IOException e) {
+        }
+
+        catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void loadStorage() {
+        String filePath = Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt";
+
+        try {
+            FileInputStream fileInputStream = new FileInputStream(filePath);
+            ObjectInputStream objectInputStream  = new ObjectInputStream(fileInputStream);
+
+            this.storage = (Storage) objectInputStream.readObject();
+        }
+
+        catch (IOException | ClassNotFoundException e) {
+            System.err.println("Failed to read " + filePath + ", "+ e);
         }
     }
 
