@@ -31,9 +31,8 @@ public class Backup extends Subprotocol {
 
     @Override
     public void run() {
-        boolean send_new_chunk = true;
         int read_bytes;
-        byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes = null;
+        byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes;
 
         try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
             for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) {

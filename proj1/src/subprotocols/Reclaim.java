@@ -5,8 +5,8 @@ import messages.RemovedMessage;
 import peer.Peer;
 import peer.storage.Chunk;
 
-public class Reclaim extends Subprotocol{
-    private long max_space;
+public class Reclaim extends Subprotocol {
+    private final long max_space;
 
     public Reclaim(MC_Channel control_channel, String version, Peer initiator_peer, long max_space) {
         super(control_channel, version, initiator_peer);
@@ -19,7 +19,7 @@ public class Reclaim extends Subprotocol{
         while(initiator_peer.storage.getUsedSpace().get() > max_space) {
             Chunk chunk = initiator_peer.storage.removeRandomChunk(); // Remove a chunk
 
-            if(chunk == null){
+            if (chunk == null){
                 System.out.println("No more chunks to delete. Aborting reclaim...");
                 return;
             }

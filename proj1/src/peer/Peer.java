@@ -153,7 +153,7 @@ public class Peer implements RMI {
 
     @Override
     public void backupFile(String filename, int replication_degree) {
-        File file = storage.getFile(filename, id);
+        File file = storage.getFile(filename);
 
         if (file == null)
             System.err.println("ERROR: File to backup does not exist. Aborting.");
@@ -224,7 +224,7 @@ public class Peer implements RMI {
         FileOutputStream fileOutputStream;
 
         try {
-            fileOutputStream = new FileOutputStream(getBackupPath());
+            fileOutputStream = new FileOutputStream(Storage.getBackupPath(id));
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
             objectOutputStream.writeObject(storage);
@@ -238,7 +238,7 @@ public class Peer implements RMI {
     }
 
     public void loadStorage() throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(getBackupPath());
+        FileInputStream fileInputStream = new FileInputStream(Storage.getBackupPath(id));
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
         this.storage = (Storage) objectInputStream.readObject();
@@ -269,9 +269,10 @@ public class Peer implements RMI {
                     // TODO: Abort if received PUTCHUNK
                     Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
 
-                    restore_channel.send(message_bytes); // Send message
+                    backup_channel.send(message_bytes); // Send message
                     System.out.printf("< Peer %d sent | bytes %d | PUTCHUNK %d\n", id, message_bytes.length, chunk_no);
                 }
+
                 catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -279,7 +280,4 @@ public class Peer implements RMI {
         }
     }
 
-    public String getBackupPath() {
-        return Storage.FILESYSTEM_FOLDER + id + "/storageBackup.txt";
-    }
 }

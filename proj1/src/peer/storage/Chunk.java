@@ -2,16 +2,16 @@ package peer.storage;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Chunk implements Serializable {
-    private String file_id;
-    private int chunk_no;
+    private final String file_id;
+    private final int chunk_no;
     private int size;
-    private int desired_rep_deg;
+    private final int desired_rep_deg;
     private int perceived_rep_deg;
-    private List<Integer> peers;
+    private final List<Integer> peers;
 
     public Chunk(String file_id, int chunk_no, int size, int desired_rep_deg, int sender_id) {
         this.file_id = file_id;
@@ -19,7 +19,7 @@ public class Chunk implements Serializable {
         this.size = size;
         this.desired_rep_deg = desired_rep_deg;
         this.perceived_rep_deg = 1;
-        this.peers = new ArrayList<>(Arrays.asList(sender_id));
+        this.peers = new ArrayList<>(Collections.singletonList(sender_id));
     }
 
     public Chunk(String file_id, int chunk_no, int desired_rep_deg, int sender_id) {
@@ -27,7 +27,7 @@ public class Chunk implements Serializable {
         this.chunk_no = chunk_no;
         this.desired_rep_deg = desired_rep_deg;
         this.perceived_rep_deg = 1;
-        this.peers = new ArrayList<>(Arrays.asList(sender_id));
+        this.peers = new ArrayList<>(Collections.singletonList(sender_id));
     }
 
     public String getFile_id() {
