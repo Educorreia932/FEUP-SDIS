@@ -1,5 +1,6 @@
 package channels;
 
+import MessageHandlers.PutChunkMessageHandler;
 import messages.Fields;
 import messages.Message;
 import messages.PutChunkMessage;
@@ -29,7 +30,7 @@ public class MDB_Channel extends Channel implements Runnable{
             //Log
             System.out.printf("> Peer %d received: %s\n", peer.id, put_chunk_msg.toString());
             // Putchunk Message Handler
-            peer.putChunkMessageHandler(put_chunk_msg, body);
+            pool.execute(new PutChunkMessageHandler(put_chunk_msg, body, peer));
         }
     }
 }

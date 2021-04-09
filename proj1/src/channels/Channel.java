@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class Channel implements Runnable {
     protected MulticastSocket socket;
@@ -16,11 +18,13 @@ public abstract class Channel implements Runnable {
     protected InetAddress group;
     protected final static int MAX_SIZE = 66000;
     protected byte[] buf = new byte[MAX_SIZE];
+    protected final ExecutorService pool;
 
     public Channel(String host, int port, Peer peer) {
         this.host = host;
         this.port = port;
         this.peer = peer;
+        pool = Executors.newCachedThreadPool();
     }
 
     public int start() {

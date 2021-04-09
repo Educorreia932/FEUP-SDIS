@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,8 +11,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable {
     private final int peer_id;
-    private final AtomicLong max_space;
-    private final AtomicLong used_space;
+    public final AtomicLong max_space;
+    public AtomicLong used_space;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
     public static final String FILESYSTEM_FOLDER = "../filesystem/peer";
@@ -29,58 +28,6 @@ public class Storage implements Serializable {
     }
 
     /**
-     * Stores chunk in peer's backup folder.
-     *
-     * @param file_id            ID of file to be stored
-     * @param chunk_no           Number of chunk to be stored
-     * @param body               Body of chunk to be stored
-     * @param replication_degree desired replication degree of chunk to be stored
-     * @return True if chunk is stored, false otherwise
-     */
-    public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
-        File chunk = getFile(file_id, chunk_no);
-        int chunk_size = 0;
-        if(body != null)
-            chunk_size = body.length;
-
-        if (chunk != null) // Chunk already stored
-            return true;
-
-        if (isFileBackedUp(file_id).get()) //  This peer has original file - cant store chunks
-            return false;
-
-        if (used_space.get() + chunk_size > max_space.get()) // No space for chunk
-            return false;
-
-        String path = getFilePath(file_id);
-        File directory = new File(path);
-
-        if (!directory.exists())     // Create folder for file
-            if (!directory.mkdirs())
-                return false; // Failed to create folder to store chunk
-
-        String chunk_path = getFilePath(file_id, chunk_no);
-
-        try (FileOutputStream stream = new FileOutputStream(chunk_path)) {
-
-            if (chunk_size != 0)  // Don't write if empty chunk
-                stream.write(body);
-
-            // Add to map
-            if (stored_chunks.put(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
-                used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
-
-            return true;
-        }
-
-        catch (IOException e) {
-            System.err.println("ERROR: Couldn't write chunk to file.");
-        }
-
-        return false;
-    }
-
-    /**
      * Creates directories for peer with id: peer_id
      */
     public void makeDirectories() {
@@ -90,35 +37,6 @@ public class Storage implements Serializable {
             directory.mkdirs();
     }
 
-    public void addBackedUpFile(BackedUpFile file) {
-        backed_up_files.put(file.getPath(), file);
-    }
-
-    public void deleteAllChunksFromFile(String file_id) {
-        String path = getFilePath(file_id);
-        File folder = new File(path);
-
-        if (folder.exists() && folder.isDirectory()) {
-            // Remove all chunks from directory
-            File[] chunks = folder.listFiles();
-
-            if (chunks != null) {
-                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++) {
-                    if (chunks[chunk_no].delete()) { // Delete file
-                        // Delete from map
-                        Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
-                        if (chunk != null) // Update used space
-                            used_space.set(used_space.get() - chunk.getSize());
-                    }
-                }
-            }
-            folder.delete(); // Delete folder
-        }
-    }
-
-    public void removeBackedUpFile(BackedUpFile file) {
-        backed_up_files.remove(file.getPath());
-    }
 
     public synchronized void updateReplicationDegree(String file_id, int chunk_no, int sender_id, boolean increment) {
         // Updates perceived_rep_deg for BackedUpFiles
@@ -147,27 +65,6 @@ public class Storage implements Serializable {
         }
     }
 
-    public AtomicBoolean isFileBackedUp(String file_id) {
-        return new AtomicBoolean(backed_up_files.containsValue(new BackedUpFile(file_id)));
-    }
-
-    public Chunk removeRandomChunk() {
-        for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
-            Chunk chunk = entry.getValue();
-            if (chunk.getSize() > 0) { // Remove chunk if size of chunk > 0
-                String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFile_id()
-                        + '/' + chunk.getChunk_no(); // Get chunk path
-                File file = new File(path);
-
-                if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
-                    stored_chunks.remove(entry.getKey()); // Remove from map
-                    used_space.set(used_space.get() - chunk.getSize()); // Update used_space
-                    return chunk;
-                }
-            }
-        }
-        return null;
-    }
 
     public String wasFileModified(String file_path, String new_file_id) {
         BackedUpFile old_file = backed_up_files.get(file_path);
@@ -273,9 +170,82 @@ public class Storage implements Serializable {
         return Storage.FILESYSTEM_FOLDER + peer_id + "/storageBackup.txt";
     }
 
-    /* -- SETTERS -- */
+    /* -- SETTERS & ADDS/REMOVES -- */
 
     public void setMaxSpace(long value) {
         max_space.set(value);
     }
+
+    public void addBackedUpFile(BackedUpFile file) {
+        backed_up_files.put(file.getPath(), file);
+    }
+
+    public void addStoredChunk(String key, Chunk value){
+        if(stored_chunks.put(key, value) == null)
+            used_space.set(used_space.get() + value.getSize()); // Updates space if chunk is new
+    }
+
+    public void removeBackedUpFile(BackedUpFile file) {
+        backed_up_files.remove(file.getPath());
+    }
+
+    public Chunk removeRandomChunk() {
+        for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
+            Chunk chunk = entry.getValue();
+            if (chunk.getSize() > 0) { // Remove chunk if size of chunk > 0
+                String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFile_id()
+                        + '/' + chunk.getChunk_no(); // Get chunk path
+                File file = new File(path);
+
+                if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
+                    stored_chunks.remove(entry.getKey()); // Remove from map
+                    used_space.set(used_space.get() - chunk.getSize()); // Update used_space
+                    return chunk;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void deleteAllChunksFromFile(String file_id) {
+        String path = getFilePath(file_id);
+        File folder = new File(path);
+
+        if (folder.exists() && folder.isDirectory()) {
+            // Remove all chunks from directory
+            File[] chunks = folder.listFiles();
+
+            if (chunks != null) {
+                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++) {
+                    if (chunks[chunk_no].delete()) { // Delete file
+                        // Delete from map
+                        Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
+                        if (chunk != null) // Update used space
+                            used_space.set(used_space.get() - chunk.getSize());
+                    }
+                }
+            }
+            folder.delete(); // Delete folder
+        }
+    }
+
+    /* BOOLEAN Functions */
+
+    private boolean isThereAvailableSpace(int chunk_size){
+        return used_space.get() + chunk_size < max_space.get();
+    }
+
+    public AtomicBoolean isFileBackedUp(String file_id) {
+        return new AtomicBoolean(backed_up_files.containsValue(new BackedUpFile(file_id)));
+    }
+
+    public boolean isChunkStored(String file_id, int chunk_no){
+        return (getFile(file_id, chunk_no) != null);
+    }
+
+    public boolean canStoreChunk(String file_id, int chunk_size){
+        // This peer has original file - cant store chunks & No space for chunk
+        return (!isFileBackedUp(file_id).get() || isThereAvailableSpace(chunk_size));
+    }
+
 }

@@ -22,7 +22,7 @@ public class Peer implements RMI {
     public int id;
     private String version; // TODO: Should the Peer store a version and not only the subprotocols?
     private String access_point;
-    private MC_Channel control_channel;
+    public MC_Channel control_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
     private ExecutorService pool;
@@ -50,8 +50,6 @@ public class Peer implements RMI {
             System.exit(-1);
         }
 
-        peer.pool = Executors.newCachedThreadPool();
-
         // Start listening on channels
         peer.pool.execute(peer.backup_channel);
         peer.pool.execute(peer.control_channel);
@@ -66,6 +64,7 @@ public class Peer implements RMI {
             control_channel = new MC_Channel(args[3], Integer.parseInt(args[4]), this);
             backup_channel = new MDB_Channel(args[5], Integer.parseInt(args[6]), this);
             restore_channel = new MDR_Channel(args[7], Integer.parseInt(args[8]), this);
+            pool = Executors.newCachedThreadPool();
         }
 
         catch (NumberFormatException e) {
@@ -121,30 +120,6 @@ public class Peer implements RMI {
         }
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
-        }
-    }
-
-    public void putChunkMessageHandler(PutChunkMessage put_chunk_msg, byte[] body) {
-        int chunk_no = put_chunk_msg.getChunk_no(),
-                replication_degree = put_chunk_msg.getReplication_degree();
-        String version = put_chunk_msg.getVersion(),
-                file_id = put_chunk_msg.getFile_id();
-
-        // If store was successful send STORED
-        if (storage.putChunk(file_id, chunk_no, body, replication_degree)) {
-            saveStorage(); // Update storage
-
-            try { // Sleep (0-400ms)
-                Thread.sleep(new Random().nextInt(400));
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // Send STORED msg
-            StoredMessage store_msg = new StoredMessage(version, id, file_id, chunk_no);
-            control_channel.send(store_msg.getBytes(null, 0));
-            System.out.printf("< Peer %d sent: %s\n", id, store_msg.toString()); // Log
         }
     }
 
