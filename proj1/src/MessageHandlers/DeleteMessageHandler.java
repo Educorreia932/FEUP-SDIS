@@ -2,20 +2,15 @@ package MessageHandlers;
 
 import messages.DeleteMessage;
 import peer.Peer;
-import peer.storage.Chunk;
-import peer.storage.Storage;
 
 import java.io.File;
 
-public class DeleteMessageHandler implements Runnable{
-    private final String file_id;
+public class DeleteMessageHandler extends MessageHandler{
     private final Peer peer;
-    private final Storage storage;
 
     public DeleteMessageHandler(DeleteMessage delete_msg, Peer peer){
-        file_id = delete_msg.getFile_id();
+        super(delete_msg.getFile_id(), peer.storage);
         this.peer = peer;
-        storage = peer.storage;
     }
 
     @Override

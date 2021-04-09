@@ -81,13 +81,6 @@ public class Peer implements RMI {
         }
     }
 
-    /* Messages Handlers */
-
-    public void chunkMessageHandler(String file_id, int chunk_no, byte[] body){
-        if(storage.isFileBackedUp(file_id).get()) // Store chunk only if peer has original file
-            restore_channel.received_chunks.put(Pair.create(file_id, chunk_no), body);
-    }
-
     /* RMI Interface */
 
     @Override
@@ -156,6 +149,22 @@ public class Peer implements RMI {
                 storage.getBackedUpChunksState();
     }
 
+    /* Getters */
+
+    public MC_Channel getControl_channel() {
+        return control_channel;
+    }
+
+    public MDB_Channel getBackup_channel() {
+        return backup_channel;
+    }
+
+    public MDR_Channel getRestore_channel() {
+        return restore_channel;
+    }
+
+    /* Others */
+
     private static void usage() {
         System.out.println("Usage: <protocol version> <peer ID> <service access point> <MC> <MDB> <MDR>");
     }
@@ -182,19 +191,5 @@ public class Peer implements RMI {
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
         this.storage = (Storage) objectInputStream.readObject();
-    }
-
-    /* Getters */
-
-    public MC_Channel getControl_channel() {
-        return control_channel;
-    }
-
-    public MDB_Channel getBackup_channel() {
-        return backup_channel;
-    }
-
-    public MDR_Channel getRestore_channel() {
-        return restore_channel;
     }
 }

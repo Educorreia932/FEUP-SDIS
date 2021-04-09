@@ -12,23 +12,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
-public class PutChunkMessageHandler implements Runnable{
+public class PutChunkMessageHandler extends MessageHandler{
     private final byte[] body;
     private final int chunk_no;
     private final int replication_degree;
     private final String version;
-    private final String file_id;
-    private final Storage storage;
     private final MC_Channel control_channel;
     private final Peer peer;
 
     public PutChunkMessageHandler(PutChunkMessage put_chunk_msg, byte[] body, Peer peer){
+        super(put_chunk_msg.getFile_id(), peer.storage);
         chunk_no = put_chunk_msg.getChunk_no();
         replication_degree = put_chunk_msg.getReplication_degree();
         version =  put_chunk_msg.getVersion();
-        file_id = put_chunk_msg.getFile_id();
         this.body = body;
-        storage = peer.storage;
         control_channel = peer.getControl_channel();
         this.peer = peer;
     }

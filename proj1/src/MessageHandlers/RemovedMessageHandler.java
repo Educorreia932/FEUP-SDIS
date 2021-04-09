@@ -3,26 +3,22 @@ package MessageHandlers;
 import messages.RemovedMessage;
 import peer.Peer;
 import peer.storage.Chunk;
-import peer.storage.Storage;
 import subprotocols.Backup;
 
 import java.io.File;
 import java.util.Random;
 
-public class RemovedMessageHandler implements Runnable {
-    private final String file_id;
+public class RemovedMessageHandler extends MessageHandler {
     private final int chunk_no;
     private final int sender_id;
     private final String version;
-    private final Storage storage;
     private final Peer peer;
 
     public RemovedMessageHandler(RemovedMessage removed_msg, Peer peer) {
-        file_id = removed_msg.getFile_id();
+        super(removed_msg.getFile_id(), peer.storage);
         chunk_no = removed_msg.getChunk_no();
         sender_id = removed_msg.getSender_id();
         version = removed_msg.getVersion();
-        storage = peer.storage;
         this.peer = peer;
     }
 

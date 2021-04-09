@@ -1,5 +1,6 @@
 package channels;
 
+import MessageHandlers.ChunkMessageHandler;
 import messages.ChunkMessage;
 import messages.Fields;
 import messages.Message;
@@ -40,7 +41,7 @@ public class MDR_Channel extends Channel {
             // Log
             System.out.printf("< Peer %d received: %s\n", peer.id, chunk_msg.toString());
             // Chunk message handler
-            peer.chunkMessageHandler(chunk_msg.getFile_id(), chunk_msg.getChunk_no(), body);
+            pool.execute(new ChunkMessageHandler(chunk_msg, peer, body));
         }
     }
 }

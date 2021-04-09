@@ -11,19 +11,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Random;
 
-public class GetChunkMessageHandler implements Runnable{
-    private String file_id;
-    private int chunk_no;
-    private int peer_id;
-    private String version;
-    private Storage storage;
-    private MDR_Channel restore_channel;
+public class GetChunkMessageHandler extends MessageHandler{
+    private final int chunk_no;
+    private final int peer_id;
+    private final String version;
+    private final MDR_Channel restore_channel;
 
     public GetChunkMessageHandler(GetChunkMessage get_chunk_msg, Peer peer){
-        file_id = get_chunk_msg.getFile_id();
+        super(get_chunk_msg.getFile_id(), peer.storage);
         chunk_no = get_chunk_msg.getChunk_no();
         version = get_chunk_msg.getVersion();
-        storage = peer.storage;
         peer_id = peer.id;
         restore_channel = peer.getRestore_channel();
     }
