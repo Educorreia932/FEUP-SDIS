@@ -44,42 +44,38 @@ public class Backup extends Subprotocol {
 
                 message_bytes = message.getBytes(chunk, read_bytes);
 
-                if(!sendPutChunk(message_bytes, chunk_no)) {
+                if(!sendPutChunk(message_bytes)) {
                     System.out.println("Failed to achieve desired replication degree. Giving up...");
-
                     return; // Give up
                 }
             }
+            System.out.println("BACKUP of " + file.getPath() + " finished.");
         }
 
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            System.out.println("ERROR: Failed to read chunks. Aborting backup...");
         }
-
-        System.out.println("BACKUP of " + file.getPath() + " finished.");
     }
 
-    public boolean sendPutChunk(byte[] message_bytes, int chunk_no) throws InterruptedException {
-        // Resend chunk
+    public boolean sendPutChunk(byte[] message_bytes) throws InterruptedException {
         short MAX_TRIES = 5;
         int  sleep_time = 1000, perceived_rp;
 
         for (int tries = 1; tries <= MAX_TRIES; tries++) {
             // Send message to MDB multicast data channel
             mdb_channel.send(message_bytes);
-            System.out.printf("< Peer %d sent | %d bytes | PUTCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
+            System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
             Thread.sleep(sleep_time);
 
             // Check perceived replication degree
-            perceived_rp = initiator_peer.storage.getPerceivedRP(file.getPath(), chunk_no);
+            perceived_rp = initiator_peer.storage.getPerceivedRP(file.getPath(), message.getChunk_no());
 
             if (perceived_rp < replication_degree)
                 sleep_time *= 2;  // Double sleep time
-
             else                  // Achieved desired replication degree
                 return true;
         }
-
         return false; // Max tries => give up
     }
 }

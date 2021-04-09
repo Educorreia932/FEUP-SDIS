@@ -16,6 +16,13 @@ public abstract class Message {
         this.file_id = file_id;
     }
 
+    public Message(String[] header_fields){
+        this.version = header_fields[Fields.VERSION.ordinal()];
+        this.type = header_fields[Fields.MSG_TYPE.ordinal()];
+        this.sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
+        this.file_id = header_fields[Fields.FILE_ID.ordinal()];
+    }
+
     protected String getHeader(String content) {
         return String.format("%s %s %d %s %s %s %s", version, type, sender_id, file_id, content, CRLF, CRLF);
     }
@@ -60,7 +67,7 @@ public abstract class Message {
      * @return Message byte array
      */
     public byte[] getBytes(byte[] body, int body_length) {
-        byte[] header = toString().getBytes(StandardCharsets.UTF_8);
+        byte[] header = getHeader().getBytes(StandardCharsets.UTF_8);
         byte[] message = new byte[header.length + body_length];
 
         // Copy contents to message array
@@ -76,5 +83,26 @@ public abstract class Message {
         String header_string = new String(getHeaderBytes(message_bytes));
 
         return header_string.split("\\s+"); // Split header by spaces
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s %d %s ", version, type, sender_id, file_id);
+    }
+
+    public String getHeader(){
+        return getHeader("");
+    }
+
+    public int getSender_id() {
+        return sender_id;
+    }
+
+    public String getFile_id() {
+        return file_id;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }

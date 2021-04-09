@@ -1,5 +1,6 @@
 package channels;
 
+import messages.ChunkMessage;
 import messages.Fields;
 import messages.Message;
 import peer.Peer;
@@ -24,27 +25,22 @@ public class MDR_Channel extends Channel {
         byte[] header = Message.getHeaderBytes(msg);
         String[] header_fields = Message.getHeaderFields(msg);
 
-        // Ignore message from itself
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
-        if (sender_id == peer.id) return;
-
         String type = header_fields[Fields.MSG_TYPE.ordinal()];
+
+        // Ignore message from itself
+        if (sender_id == peer.id) return;
 
         if (type.equals("CHUNK")) {
             this.received_chunk_msg.set(true); // Received chunk message => true
 
-            // Parse fields
-            int chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
-            String file_id = header_fields[Fields.FILE_ID.ordinal()];
+            ChunkMessage chunk_msg = new ChunkMessage(header_fields);
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
-
             if(body == null) body = new byte[0]; // Empty chunk
-
             // Log
-            System.out.printf("< Peer %d received | %d bytes | CHUNK %d | FROM Peer %d\n", peer.id, body.length, chunk_no, sender_id);
-
+            System.out.printf("< Peer %d received: %s\n", peer.id, chunk_msg.toString());
             // Chunk message handler
-            peer.chunkMessageHandler(file_id, chunk_no, body);
+            peer.chunkMessageHandler(chunk_msg.getFile_id(), chunk_msg.getChunk_no(), body);
         }
     }
 

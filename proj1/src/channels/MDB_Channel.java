@@ -2,6 +2,7 @@ package channels;
 
 import messages.Fields;
 import messages.Message;
+import messages.PutChunkMessage;
 import peer.Peer;
 
 public class MDB_Channel extends Channel implements Runnable{
@@ -14,24 +15,21 @@ public class MDB_Channel extends Channel implements Runnable{
     protected void parseMessage(byte[] msg, int msg_len) {
         byte[] header = Message.getHeaderBytes(msg);
         byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
-
         String[] header_fields = Message.getHeaderFields(msg);
 
-        // Ignore message from itself
+        // Parse fields
+        String type = header_fields[Fields.MSG_TYPE.ordinal()];
         int sender_id = Integer.parseInt(header_fields[Fields.SENDER_ID.ordinal()]);
+
+        // Ignore message from itself
         if (sender_id == peer.id) return;
 
-        String type = header_fields[Fields.MSG_TYPE.ordinal()];
-
         if(type.equals("PUTCHUNK")){
-            // Parse fields
-            String chunk_no = header_fields[Fields.CHUNK_NO.ordinal()];
-
+            PutChunkMessage put_chunk_msg = new PutChunkMessage(header_fields);
             //Log
-            System.out.printf("> Peer %d received | %d bytes | PUTCHUNK %s | FROM Peer %d \n", peer.id, msg_len, chunk_no, sender_id);
-
+            System.out.printf("> Peer %d received: %s\n", peer.id, put_chunk_msg.toString());
             // Putchunk Message Handler
-            peer.putChunkMessageHandler(header_fields, body);
+            peer.putChunkMessageHandler(put_chunk_msg, body);
         }
     }
 }

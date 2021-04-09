@@ -26,12 +26,12 @@ public class Restore extends Subprotocol {
     @Override
     public void run() {
         int chunk_no = 0;
+        byte[] message_bytes = message.getBytes(null, 0);
 
         while (chunk_no < number_of_chunks) {
             // Send message
-            byte[] message_bytes = message.getBytes(null, 0);
             control_channel.send(message_bytes);
-            System.out.printf("< Peer %d | %d bytes | GETCHUNK %d\n", initiator_peer.id, message_bytes.length, chunk_no);
+            System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
 
             try {
                 Thread.sleep(500);
@@ -49,6 +49,6 @@ public class Restore extends Subprotocol {
             }
         }
         restore_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
-        System.out.println("RESTORE finished.");
+        System.out.println("RESTORE of " + file_path + " finished.");
     }
 }

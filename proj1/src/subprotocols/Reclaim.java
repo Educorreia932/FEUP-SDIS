@@ -33,6 +33,6 @@ public class Reclaim extends Subprotocol {
             System.out.printf("< Peer %d sent | REMOVED %d\n", initiator_peer.id, chunk.getChunk_no());
         }
 
-        System.out.println("Finished Reclaim.");
+        System.out.println("Finished RECLAIM of " + max_space + '.');
     }
 }

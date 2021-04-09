@@ -6,8 +6,7 @@ public class DeleteMessage extends Message {
         super(version, "DELETE", sender_id, file_id);
     }
 
-    @Override
-    public String toString() {
-        return super.getHeader("");
+    public DeleteMessage(String[] header_fields){
+        super(header_fields);
     }
 }
