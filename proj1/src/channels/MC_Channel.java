@@ -1,5 +1,6 @@
 package channels;
 
+import MessageHandlers.DeleteMessageHandler;
 import MessageHandlers.GetChunkMessageHandler;
 import MessageHandlers.StoredMessageHandler;
 import messages.*;
@@ -43,7 +44,7 @@ public class MC_Channel extends Channel {
                 // Log
                 System.out.printf("> Peer %d received: %s\n", peer.id, delete_msg.toString());
                 // Delete Message Handler
-                peer.deleteMessageHandler(delete_msg.getFile_id());
+                pool.execute(new DeleteMessageHandler(delete_msg, peer));
                 break;
 
             case "REMOVED":

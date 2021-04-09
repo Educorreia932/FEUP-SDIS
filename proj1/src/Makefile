@@ -29,16 +29,16 @@ peer4:
 	java -cp $(OUT_DIR) peer.Peer 1.0 4 4 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
-	java -cp $(OUT_DIR) test.TestApp 1 BACKUP isto.txt 2
+	java -cp $(OUT_DIR) test.TestApp 1 BACKUP empty 1
 
 restore:
 	java -cp $(OUT_DIR) test.TestApp 1 RESTORE isto.txt
 
 delete:
-	java -cp $(OUT_DIR) test.TestApp 1 DELETE carlota.jpg
+	java -cp $(OUT_DIR) test.TestApp 1 DELETE empty
 
 reclaim:
 	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 0
 
 state:
-	java -cp $(OUT_DIR) test.TestApp 1 STATE
+	java -cp $(OUT_DIR) test.TestApp 2 STATE

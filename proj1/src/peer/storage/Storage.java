@@ -27,16 +27,13 @@ public class Storage implements Serializable {
         this.used_space = new AtomicLong(0);
     }
 
-    /**
-     * Creates directories for peer with id: peer_id
-     */
+
     public void makeDirectories() {
         File directory = new File(FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER);
 
         if (!directory.exists())
             directory.mkdirs();
     }
-
 
     public synchronized void updateReplicationDegree(String file_id, int chunk_no, int sender_id, boolean increment) {
         // Updates perceived_rep_deg for BackedUpFiles
@@ -64,7 +61,6 @@ public class Storage implements Serializable {
                     chunk.decrementPerceivedRepDegree(sender_id);
         }
     }
-
 
     public String wasFileModified(String file_path, String new_file_id) {
         BackedUpFile old_file = backed_up_files.get(file_path);
@@ -197,12 +193,25 @@ public class Storage implements Serializable {
             File file = new File(path);
 
             if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
-                stored_chunks.remove(entry.getKey()); // Remove from map
-                used_space.set(used_space.get() - chunk.getSize()); // Update used_space
+                removeStoredChunk(entry.getKey()); // Remove from map
                 return chunk;
             }
         }
         return null;
+    }
+
+    public void removeStoredChunk(String path){
+        // Remove from map
+        Chunk chunk = stored_chunks.remove(path);
+        if (chunk != null) // Update used space
+            used_space.set(used_space.get() - chunk.getSize());
+    }
+
+    public void removeStoredChunk(String file_id, int chunk_no){
+        // Remove from map
+        Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
+        if (chunk != null) // Update used space
+            used_space.set(used_space.get() - chunk.getSize());
     }
 
     public void deleteAllChunksFromFile(String file_id) {
