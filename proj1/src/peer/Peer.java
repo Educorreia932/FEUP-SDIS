@@ -6,6 +6,7 @@ import peer.storage.BackedUpFile;
 import peer.storage.Chunk;
 import peer.storage.Storage;
 import subprotocols.*;
+import utils.Pair;
 
 import java.io.*;
 import java.rmi.AlreadyBoundException;
@@ -84,7 +85,9 @@ public class Peer implements RMI {
         }
     }
 
-    public void getChunk(String[] header) {
+    /* Messages Handlers */
+
+    public void getChunkMessageHandler(String[] header) {
         String file_id = header[Fields.FILE_ID.ordinal()];
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]);
         File chunk = storage.getFile(file_id, chunk_no);
@@ -109,7 +112,7 @@ public class Peer implements RMI {
             // Get message byte array
             message_bytes = message.getBytes(body, read_bytes);
 
-            restore_channel.received_chunk_msg.set(false);
+            restore_channel.received_chunk_msg.set(false);      // TODO: many protocols at same time dont work ???
             Thread.sleep(new Random().nextInt(400));       // Sleep (0-400)ms
             if (restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
 
@@ -121,13 +124,7 @@ public class Peer implements RMI {
         }
     }
 
-    /**
-     * Stores chunk received from the MDB channel
-     *
-     * @param header Header of the message received
-     * @param body   Chunk to store
-     */
-    public void putChunk(String[] header, byte[] body) {
+    public void putChunkMessageHandler(String[] header, byte[] body) {
         // Parse fields
         int chunk_no = Integer.parseInt(header[Fields.CHUNK_NO.ordinal()]),
                 replication_degree = Integer.parseInt(header[Fields.REP_DEG.ordinal()]);
@@ -136,10 +133,11 @@ public class Peer implements RMI {
 
         // If store was successful send STORED
         if (storage.putChunk(file_id, chunk_no, body, replication_degree)) {
+            saveStorage(); // Update storage
+
             try { // Sleep (0-400ms)
                 Thread.sleep(new Random().nextInt(400));
             }
-
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -150,6 +148,32 @@ public class Peer implements RMI {
             System.out.printf("< Peer %d sent | STORED %d\n", id, chunk_no);
         }
     }
+
+    public void storedMessageHandler(String file_id, int chunk_no, int sender_id){
+        // Increment RP
+        storage.updateReplicationDegree(file_id, chunk_no, sender_id, true);
+        saveStorage(); // Update storage
+    }
+
+    public void deleteMessageHandler(String file_id){
+        // Deletes all chunks from file
+        storage.deleteAllChunksFromFile(file_id);
+        saveStorage(); // Update storage
+    }
+
+    public void removedMessageHandler(String file_id, int chunk_no, int sender_id){
+        // Decrement RP
+        storage.updateReplicationDegree(file_id, chunk_no, sender_id, false);
+        updateChunkRP(file_id, chunk_no); // Check if perceived RP < Desired RP
+        saveStorage(); // Update storage
+    }
+
+    public void chunkMessageHandler(String file_id, int chunk_no, byte[] body){
+        if(storage.isFileBackedUp(file_id).get()) // Store chunk only if peer has original file
+            restore_channel.received_chunks.put(Pair.create(file_id, chunk_no), body);
+    }
+
+    /* RMI Interface */
 
     @Override
     public void backupFile(String filename, int replication_degree) {

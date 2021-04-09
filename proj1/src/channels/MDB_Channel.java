@@ -24,11 +24,14 @@ public class MDB_Channel extends Channel implements Runnable{
         String type = header_fields[Fields.MSG_TYPE.ordinal()];
 
         if(type.equals("PUTCHUNK")){
+            // Parse fields
             String chunk_no = header_fields[Fields.CHUNK_NO.ordinal()];
+
             //Log
             System.out.printf("> Peer %d received | %d bytes | PUTCHUNK %s | FROM Peer %d \n", peer.id, msg_len, chunk_no, sender_id);
-            peer.putChunk(header_fields, body); // Store chunk
-            peer.saveStorage(); // Update storage
+
+            // Putchunk Message Handler
+            peer.putChunkMessageHandler(header_fields, body);
         }
     }
 }

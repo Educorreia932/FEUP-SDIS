@@ -31,20 +31,20 @@ public class MDR_Channel extends Channel {
         String type = header_fields[Fields.MSG_TYPE.ordinal()];
 
         if (type.equals("CHUNK")) {
-            this.received_chunk_msg.set(true);
+            this.received_chunk_msg.set(true); // Received chunk message => true
 
             // Parse fields
-            int chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]), body_len;
+            int chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
             String file_id = header_fields[Fields.FILE_ID.ordinal()];
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
 
             if(body == null) body = new byte[0]; // Empty chunk
 
+            // Log
             System.out.printf("< Peer %d received | %d bytes | CHUNK %d | FROM Peer %d\n", peer.id, body.length, chunk_no, sender_id);
 
-            if(peer.storage.isFileBackedUp(file_id).get()) // Store chunk only if peer asked for it
-                received_chunks.putIfAbsent(Pair.create(file_id, chunk_no), body); // Store chunk
-
+            // Chunk message handler
+            peer.chunkMessageHandler(file_id, chunk_no, body);
         }
     }
 

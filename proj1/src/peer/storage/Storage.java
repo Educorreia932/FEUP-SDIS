@@ -66,7 +66,6 @@ public class Storage implements Serializable {
                 chunk_size = body.length;
             }
 
-
             if (stored_chunks.put(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
                 used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
 
@@ -94,26 +93,24 @@ public class Storage implements Serializable {
         backed_up_files.put(file.getPath(), file);
     }
 
-    public void deleteFile(String file_id) {
+    public void deleteAllChunksFromFile(String file_id) {
         String path = getFilePath(file_id);
         File folder = new File(path);
 
         if (folder.exists() && folder.isDirectory()) {
-            // Empty directory
+            // Remove all chunks from directory
             File[] chunks = folder.listFiles();
 
             if (chunks != null) {
-                int chunk_no = 0;
-                for (File chunk : chunks) {
-                    if (chunk.delete()) {
-                        Chunk c = stored_chunks.remove(getFilePath(file_id, chunk_no));
-                        if (c != null) // Update used space
-                            used_space.set(used_space.get() - c.getSize());
+                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++) {
+                    if (chunks[chunk_no].delete()) { // Delete file
+                        // Delete from map
+                        Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
+                        if (chunk != null) // Update used space
+                            used_space.set(used_space.get() - chunk.getSize());
                     }
-                    chunk_no++;
                 }
             }
-
             folder.delete(); // Delete folder
         }
     }
