@@ -24,6 +24,7 @@ public class GetChunkMessageHandler implements Runnable{
         chunk_no = get_chunk_msg.getChunk_no();
         version = get_chunk_msg.getVersion();
         storage = peer.storage;
+        peer_id = peer.id;
         restore_channel = peer.getRestore_channel();
     }
 

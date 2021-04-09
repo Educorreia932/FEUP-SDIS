@@ -243,7 +243,7 @@ public class Storage implements Serializable {
 
     public boolean canStoreChunk(String file_id, int chunk_size){
         // This peer has original file - cant store chunks & No space for chunk
-        return (!isFileBackedUp(file_id).get() || isThereAvailableSpace(chunk_size));
+        return (!isFileBackedUp(file_id).get() && isThereAvailableSpace(chunk_size));
     }
 
 }

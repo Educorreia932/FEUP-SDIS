@@ -63,7 +63,7 @@ public class PutChunkMessageHandler implements Runnable{
         if (storage.isChunkStored(file_id, chunk_no))
             return true; // Chunk already stored
 
-        if(!storage.canStoreChunk(file_id,chunk_size))
+        if(!storage.canStoreChunk(file_id, chunk_size))
             return false; // Can't store chunk
 
         // Make directory

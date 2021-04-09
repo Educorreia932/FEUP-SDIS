@@ -114,7 +114,7 @@ public class Peer implements RMI {
         if (file == null)
             System.err.println("ERROR: File to backup does not exist. Aborting.");
 
-        else {
+        else {// TODO: Fazer isto dentro do backup
             BackedUpFile new_file = new BackedUpFile(file.toPath(), replication_degree);
             String old_file_id = storage.wasFileModified(file.getPath(), new_file.getId());
             if (old_file_id != null) { // File was modified
