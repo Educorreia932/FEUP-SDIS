@@ -22,7 +22,7 @@ public class Peer implements RMI {
     public int id;
     private String version; // TODO: Should the Peer store a version and not only the subprotocols?
     private String access_point;
-    public MC_Channel control_channel;
+    private MC_Channel control_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
     private ExecutorService pool;
@@ -85,43 +85,6 @@ public class Peer implements RMI {
     }
 
     /* Messages Handlers */
-
-    public void getChunkMessageHandler(GetChunkMessage get_chunk_msg) {
-        String file_id = get_chunk_msg.getFile_id();
-        int chunk_no = get_chunk_msg.getChunk_no();
-        File chunk = storage.getFile(file_id, chunk_no);
-
-        if (chunk == null) {
-            System.err.printf("Chunk %d is not stored \n", chunk_no);
-            return; // Chunk is not stored
-        }
-
-        int read_bytes = 0;
-        byte[] body = new byte[Storage.MAX_CHUNK_SIZE], message_bytes;
-        ChunkMessage message = new ChunkMessage(version, id, file_id, chunk_no);
-
-        // Create Message
-        try {
-            // Read chunk
-            FileInputStream inputStream = new FileInputStream(chunk.getPath());
-
-            if (inputStream.available() > 0) // Check if empty
-                read_bytes = inputStream.read(body); // Read chunk
-
-            // Get message byte array
-            message_bytes = message.getBytes(body, read_bytes);
-
-            restore_channel.received_chunk_msg.set(false);      // TODO: many protocols at same time dont work ???
-            Thread.sleep(new Random().nextInt(400));       // Sleep (0-400)ms
-            if (restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
-
-            restore_channel.send(message_bytes); // Send message
-            System.out.printf("< Peer %d Sent: %s\n", id, message.toString()); // Log
-        }
-        catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void storedMessageHandler(String file_id, int chunk_no, int sender_id){
         // Increment RP
@@ -266,4 +229,17 @@ public class Peer implements RMI {
         }
     }
 
+    /* Getters */
+
+    public MC_Channel getControl_channel() {
+        return control_channel;
+    }
+
+    public MDB_Channel getBackup_channel() {
+        return backup_channel;
+    }
+
+    public MDR_Channel getRestore_channel() {
+        return restore_channel;
+    }
 }

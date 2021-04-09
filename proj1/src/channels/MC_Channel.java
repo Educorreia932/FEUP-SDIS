@@ -1,5 +1,6 @@
 package channels;
 
+import MessageHandlers.GetChunkMessageHandler;
 import messages.*;
 import peer.Peer;
 
@@ -33,7 +34,7 @@ public class MC_Channel extends Channel {
                 // Log
                 System.out.printf("> Peer %d received: %s\n", peer.id, get_chunk_msg.toString());
                 // GetChunk Message Handler
-                peer.getChunkMessageHandler(get_chunk_msg);
+                pool.execute(new GetChunkMessageHandler(get_chunk_msg, peer));
                 break;
 
             case "DELETE":

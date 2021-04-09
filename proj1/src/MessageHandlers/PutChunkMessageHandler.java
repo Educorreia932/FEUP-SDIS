@@ -29,7 +29,7 @@ public class PutChunkMessageHandler implements Runnable{
         file_id = put_chunk_msg.getFile_id();
         this.body = body;
         storage = peer.storage;
-        control_channel = peer.control_channel;
+        control_channel = peer.getControl_channel();
         this.peer = peer;
     }
 
