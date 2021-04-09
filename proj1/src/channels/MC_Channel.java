@@ -1,6 +1,7 @@
 package channels;
 
 import MessageHandlers.GetChunkMessageHandler;
+import MessageHandlers.StoredMessageHandler;
 import messages.*;
 import peer.Peer;
 
@@ -26,7 +27,7 @@ public class MC_Channel extends Channel {
                 // Log
                 System.out.printf("> Peer %d received: %s\n", peer.id, stored_msg.toString());
                 // Stored Message Handler
-                peer.storedMessageHandler(stored_msg.getFile_id(), stored_msg.getChunk_no(), sender_id);
+                pool.execute(new StoredMessageHandler(stored_msg, peer));
                 break;
 
             case "GETCHUNK":

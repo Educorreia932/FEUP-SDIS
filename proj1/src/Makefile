@@ -41,4 +41,4 @@ reclaim:
 	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 0
 
 state:
-	java -cp $(OUT_DIR) test.TestApp 3 STATE
+	java -cp $(OUT_DIR) test.TestApp 2 STATE

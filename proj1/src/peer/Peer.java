@@ -86,11 +86,6 @@ public class Peer implements RMI {
 
     /* Messages Handlers */
 
-    public void storedMessageHandler(String file_id, int chunk_no, int sender_id){
-        // Increment RP
-        storage.updateReplicationDegree(file_id, chunk_no, sender_id, true);
-        saveStorage(); // Update storage
-    }
 
     public void deleteMessageHandler(String file_id){
         // Deletes all chunks from file
