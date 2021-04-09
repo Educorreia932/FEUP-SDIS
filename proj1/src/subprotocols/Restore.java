@@ -6,9 +6,13 @@ import messages.GetChunkMessage;
 import peer.Peer;
 import utils.Pair;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class Restore extends Subprotocol {
-    private final MDR_Channel restore_channel;
-    private final int number_of_chunks;
+    private MDR_Channel restore_channel;
+    private int number_of_chunks;
     private final String file_id;
     private final String file_path;
     private final GetChunkMessage message;
@@ -48,7 +52,29 @@ public class Restore extends Subprotocol {
                 e.printStackTrace();
             }
         }
-        restore_channel.restoreFileChunks(file_path, file_id, number_of_chunks);
-        System.out.println("RESTORE of " + file_path + " finished.");
+        if(restoreFileChunks())
+            System.out.println("RESTORE of " + file_path + " finished.");
+        else System.out.println("Failed to restore files of " + file_path);
+    }
+
+    private boolean restoreFileChunks(){
+        ArrayList<byte[]> chunks = new ArrayList<>(); // Array of chunks by order
+
+        for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) // Add chunks to array
+            chunks.add(restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no)));
+
+        try {
+            FileOutputStream stream = new FileOutputStream(file_path);
+
+            for (byte[] chunk : chunks)
+                stream.write(chunk);
+
+            stream.flush();
+            return true;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

@@ -39,6 +39,9 @@ public class Storage implements Serializable {
      */
     public boolean putChunk(String file_id, int chunk_no, byte[] body, int replication_degree) {
         File chunk = getFile(file_id, chunk_no);
+        int chunk_size = 0;
+        if(body != null)
+            chunk_size = body.length;
 
         if (chunk != null) // Chunk already stored
             return true;
@@ -46,7 +49,7 @@ public class Storage implements Serializable {
         if (isFileBackedUp(file_id).get()) //  This peer has original file - cant store chunks
             return false;
 
-        if (used_space.get() + body.length > max_space.get()) // No space for chunk
+        if (used_space.get() + chunk_size > max_space.get()) // No space for chunk
             return false;
 
         String path = getFilePath(file_id);
@@ -59,13 +62,11 @@ public class Storage implements Serializable {
         String chunk_path = getFilePath(file_id, chunk_no);
 
         try (FileOutputStream stream = new FileOutputStream(chunk_path)) {
-            int chunk_size = 0;
 
-            if (body.length != 0) { // Don't write if empty chunk
+            if (chunk_size != 0)  // Don't write if empty chunk
                 stream.write(body);
-                chunk_size = body.length;
-            }
 
+            // Add to map
             if (stored_chunks.put(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer_id)) == null)
                 used_space.set(used_space.get() + chunk_size); // Increment used space if chunk is new
 
@@ -117,21 +118,6 @@ public class Storage implements Serializable {
 
     public void removeBackedUpFile(BackedUpFile file) {
         backed_up_files.remove(file.getPath());
-    }
-
-    public void writeFile(String file_path, ArrayList<byte[]> chunks) {
-        try {
-            FileOutputStream stream = new FileOutputStream(file_path);
-
-            for (byte[] chunk : chunks)
-                stream.write(chunk);
-
-            stream.flush();
-        }
-
-        catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public synchronized void updateReplicationDegree(String file_id, int chunk_no, int sender_id, boolean increment) {

@@ -43,13 +43,4 @@ public class MDR_Channel extends Channel {
             peer.chunkMessageHandler(chunk_msg.getFile_id(), chunk_msg.getChunk_no(), body);
         }
     }
-
-    public void restoreFileChunks(String file_path, String file_id, int number_of_chunks) {
-        ArrayList<byte[]> chunks = new ArrayList<>();
-
-        for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++)
-            chunks.add(received_chunks.remove(Pair.create(file_id, chunk_no)));
-
-        peer.storage.writeFile(file_path, chunks);
-    }
 }
