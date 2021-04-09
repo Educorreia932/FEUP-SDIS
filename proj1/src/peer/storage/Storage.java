@@ -192,16 +192,14 @@ public class Storage implements Serializable {
     public Chunk removeRandomChunk() {
         for (Map.Entry<String, Chunk> entry : stored_chunks.entrySet()) {
             Chunk chunk = entry.getValue();
-            if (chunk.getSize() > 0) { // Remove chunk if size of chunk > 0
-                String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFile_id()
-                        + '/' + chunk.getChunk_no(); // Get chunk path
-                File file = new File(path);
+            String path = FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER + chunk.getFile_id()
+                    + '/' + chunk.getChunk_no(); // Get chunk path
+            File file = new File(path);
 
-                if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
-                    stored_chunks.remove(entry.getKey()); // Remove from map
-                    used_space.set(used_space.get() - chunk.getSize()); // Update used_space
-                    return chunk;
-                }
+            if (file.exists() && !file.isDirectory() && file.delete()) { // If chunk existed ans was deleted
+                stored_chunks.remove(entry.getKey()); // Remove from map
+                used_space.set(used_space.get() - chunk.getSize()); // Update used_space
+                return chunk;
             }
         }
         return null;

@@ -19,20 +19,19 @@ public class Reclaim extends Subprotocol {
         // Store
         initiator_peer.storage.setMaxSpace(max_space);
 
-        while(initiator_peer.storage.getUsedSpace().get() > max_space) {
+        while((max_space == 0) || (initiator_peer.storage.getUsedSpace().get() > max_space)) {
             Chunk chunk = initiator_peer.storage.removeRandomChunk(); // Remove a chunk
 
             if (chunk == null){
-                System.out.println("No more chunks to delete. Aborting reclaim...");
-                return;
+                System.out.println("No more chunks to delete.");
+                break;
             }
 
             // Send REMOVED msg
             RemovedMessage message = new RemovedMessage(version, initiator_peer.id, chunk.getFile_id(), chunk.getChunk_no());
             control_channel.send(message.getBytes(null, 0));
-            System.out.printf("< Peer %d sent | REMOVED %d\n", initiator_peer.id, chunk.getChunk_no());
+            System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
         }
-
         System.out.println("Finished RECLAIM of " + max_space + '.');
     }
 }
