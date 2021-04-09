@@ -230,7 +230,7 @@ public class Storage implements Serializable {
     /* BOOLEAN Functions */
 
     private boolean isThereAvailableSpace(int chunk_size){
-        return used_space.get() + chunk_size < max_space.get();
+        return used_space.get() + chunk_size < max_space.get() && max_space.get() != 0;
     }
 
     public AtomicBoolean isFileBackedUp(String file_id) {
