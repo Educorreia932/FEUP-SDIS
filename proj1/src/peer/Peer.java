@@ -1,9 +1,7 @@
 package peer;
 
-import messages.*;
 import channels.*;
 import peer.storage.BackedUpFile;
-import peer.storage.Chunk;
 import peer.storage.Storage;
 import subprotocols.*;
 import utils.Pair;
@@ -14,7 +12,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +22,7 @@ public class Peer implements RMI {
     private MC_Channel control_channel;
     private MDB_Channel backup_channel;
     private MDR_Channel restore_channel;
-    private ExecutorService pool;
+    public ExecutorService pool;
     public Storage storage;
 
     public static void main(String[] args) {
@@ -85,13 +82,6 @@ public class Peer implements RMI {
     }
 
     /* Messages Handlers */
-
-    public void removedMessageHandler(String file_id, int chunk_no, int sender_id){
-        // Decrement RP
-        storage.updateReplicationDegree(file_id, chunk_no, sender_id, false);
-        updateChunkRP(file_id, chunk_no); // Check if perceived RP < Desired RP
-        saveStorage(); // Update storage
-    }
 
     public void chunkMessageHandler(String file_id, int chunk_no, byte[] body){
         if(storage.isFileBackedUp(file_id).get()) // Store chunk only if peer has original file
@@ -192,29 +182,6 @@ public class Peer implements RMI {
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
         this.storage = (Storage) objectInputStream.readObject();
-    }
-
-    public void updateChunkRP(String file_id, int chunk_no) {
-        Chunk chunk = storage.getStoredChunk(file_id, chunk_no);
-
-        if (chunk != null && chunk.needsBackUp()) {
-            File chunk_file = storage.getFile(file_id, chunk_no);
-
-            if (chunk_file != null) {
-                try {
-                    // TODO: Abort if received PUTCHUNK
-                    Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
-
-                    Backup task = new Backup(this, version, chunk_file, chunk.getFile_id(),
-                            1, chunk.getDesired_rep_deg(), backup_channel, control_channel);
-                    pool.execute(task);
-                }
-
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     /* Getters */

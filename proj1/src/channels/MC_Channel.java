@@ -2,6 +2,7 @@ package channels;
 
 import MessageHandlers.DeleteMessageHandler;
 import MessageHandlers.GetChunkMessageHandler;
+import MessageHandlers.RemovedMessageHandler;
 import MessageHandlers.StoredMessageHandler;
 import messages.*;
 import peer.Peer;
@@ -52,7 +53,7 @@ public class MC_Channel extends Channel {
                 // Log
                 System.out.printf("> Peer %d received: %s\n", peer.id, removed_msg.toString());
                 // Removed Message Handler
-                peer.removedMessageHandler(removed_msg.getFile_id(), removed_msg.getChunk_no(), sender_id);
+                pool.execute(new RemovedMessageHandler(removed_msg, peer));
                 break;
         }
     }
