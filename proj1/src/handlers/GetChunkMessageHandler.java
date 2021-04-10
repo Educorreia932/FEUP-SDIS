@@ -5,6 +5,7 @@ import messages.ChunkMessage;
 import messages.GetChunkMessage;
 import peer.Peer;
 import peer.storage.Storage;
+import utils.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,15 +49,16 @@ public class GetChunkMessageHandler extends MessageHandler{
 
             // Get message byte array
             message_bytes = message.getBytes(body, read_bytes);
-
-            restore_channel.received_chunk_msg.set(false); // TODO: many protocols at same time dont work ???
+            // Clean hash map
+            restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no));
 
             // Sleep
             int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
             ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
             scheduledPool.schedule(() -> {
+
                 // Abort if received chunk message
-                if (restore_channel.received_chunk_msg.get()) return;
+                if (restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no)) != null) return;
 
                 // Send message
                 restore_channel.send(message_bytes);

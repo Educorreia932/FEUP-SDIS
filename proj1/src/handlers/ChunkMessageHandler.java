@@ -19,7 +19,8 @@ public class ChunkMessageHandler extends MessageHandler {
 
     @Override
     public void run() {
-        if(storage.isFileBackedUp(file_id).get()) // Store chunk only if peer has original file
+        if(storage.isFileBackedUp(file_id).get()) // Store body only if peer has original file
             restore_channel.received_chunks.put(Pair.create(file_id, chunk_no), body);
+        else restore_channel.received_chunks.put(Pair.create(file_id, chunk_no), new byte[0]);
     }
 }

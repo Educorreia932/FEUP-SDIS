@@ -8,16 +8,13 @@ import peer.Peer;
 import utils.Pair;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MDR_Channel extends Channel {
     public ConcurrentHashMap<Pair<String, Integer>, byte[]> received_chunks;
-    public AtomicBoolean received_chunk_msg;
 
     public MDR_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
         received_chunks = new ConcurrentHashMap<>();
-        this.received_chunk_msg = new AtomicBoolean(false);
     }
 
     @Override
@@ -32,8 +29,6 @@ public class MDR_Channel extends Channel {
         if (sender_id == peer.id) return;
 
         if (type.equals("CHUNK")) {
-            this.received_chunk_msg.set(true); // Received chunk message => true
-
             ChunkMessage chunk_msg = new ChunkMessage(header_fields);
             byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
             if(body == null) body = new byte[0]; // Empty chunk

@@ -5,11 +5,17 @@ import messages.Fields;
 import messages.Message;
 import messages.PutChunkMessage;
 import peer.Peer;
+import utils.Pair;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MDB_Channel extends Channel implements Runnable{
+    public Set<Pair<String, Integer>> received_chunks;
 
     public MDB_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
+        received_chunks = new ConcurrentHashMap<Pair<String, Integer>, Integer>().newKeySet();
     }
 
     @Override
@@ -27,6 +33,8 @@ public class MDB_Channel extends Channel implements Runnable{
 
         if(type.equals("PUTCHUNK")){
             PutChunkMessage put_chunk_msg = new PutChunkMessage(header_fields);
+            // Add to set
+            received_chunks.add(new Pair<>(put_chunk_msg.getFile_id(), put_chunk_msg.getChunk_no()));
             //Log
             System.out.printf("> Peer %d received: %s\n", peer.id, put_chunk_msg.toString());
             // Putchunk Message Handler
