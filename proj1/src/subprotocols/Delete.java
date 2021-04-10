@@ -2,7 +2,11 @@ package subprotocols;
 
 import channels.MC_Channel;
 import messages.DeleteMessage;
+import messages.StoredMessage;
 import peer.Peer;
+
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Delete extends Subprotocol {
     private final Peer initiator_peer;
@@ -18,18 +22,14 @@ public class Delete extends Subprotocol {
     public void run() {
         int MAX_TRIES = 3;
         byte[] message_bytes = message.getBytes(null, 0);
+        ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(MAX_TRIES);
 
         for(int i = 0; i < MAX_TRIES; i++) {
-            // Send message
-            control_channel.send(message_bytes);
-            System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
-
-            try {
-                Thread.sleep(400);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            scheduledPool.schedule(() -> {
+                // Send message
+                control_channel.send(message_bytes);
+                System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
+            }, 5 * i, TimeUnit.SECONDS);
         }
-        System.out.println("DELETE of " + message.getFile_id() + " finished.");
     }
 }
