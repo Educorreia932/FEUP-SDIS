@@ -10,7 +10,6 @@ import utils.Pair;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +19,6 @@ public class GetChunkMessageHandler extends MessageHandler {
     private final int peer_id;
     private final String version;
     private final MDR_Channel restore_channel;
-    private Socket socket;
 
     public GetChunkMessageHandler(GetChunkMessage get_chunk_msg, Peer peer) {
         super(get_chunk_msg.getFile_id(), peer.storage);
@@ -28,16 +26,6 @@ public class GetChunkMessageHandler extends MessageHandler {
         version = get_chunk_msg.getVersion();
         peer_id = peer.id;
         restore_channel = peer.getRestore_channel();
-
-        if (version.equals("2.0")) {
-            try {
-                socket = new Socket(get_chunk_msg.getAddress(), get_chunk_msg.getPort());
-            }
-
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -74,7 +62,7 @@ public class GetChunkMessageHandler extends MessageHandler {
 
                 // Send message
                 restore_channel.send(message_bytes);
-                System.out.printf("< Peer %d Sent: %s\n", peer_id, message); // Log
+                System.out.printf("< Peer %d Sent: %s\n", peer_id, message.toString()); // Log
             }, sleep_time, TimeUnit.MILLISECONDS);
         }
         catch (IOException e) {

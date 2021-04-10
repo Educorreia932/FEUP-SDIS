@@ -114,7 +114,10 @@ public class Peer implements RMI {
             return;
         }
 
-        Runnable task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+        Runnable task;
+        if(version.equals("2.0"))
+            task = new RestoreV2(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+        else task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }
 

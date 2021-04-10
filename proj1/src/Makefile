@@ -41,7 +41,7 @@ delete:
 	java -cp $(OUT_DIR) test.TestApp 1 DELETE empty
 
 reclaim:
-	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 0
+	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 99999999
 
 state:
-	java -cp $(OUT_DIR) test.TestApp 1 STATE
+	java -cp $(OUT_DIR) test.TestApp 2 STATE

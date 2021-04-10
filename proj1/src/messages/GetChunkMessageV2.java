@@ -1,38 +1,42 @@
 package messages;
 
-public class GetChunkMessageV2 extends GetChunkMessage {
+public class GetChunkMessageV2 extends Message {
     private final int port;
-    private final String address;
+    protected int chunk_no;
 
-    public GetChunkMessageV2(String version, int sender_id, String file_id, int chunk_no, int port,
-                             String address) {
-        super(version, sender_id, file_id, chunk_no);
+    public GetChunkMessageV2(String version, int sender_id, String file_id, int chunk_no, int port) {
+        super(version, "GETCHUNK", sender_id, file_id);
         this.port = port;
-        this.address = address;
+        this.chunk_no = chunk_no;
     }
 
     public GetChunkMessageV2(String[] header_fields) {
         super(header_fields);
         this.port = Integer.parseInt(header_fields[Fields.REP_DEG.ordinal()]);
-        this.address = header_fields[Fields.REP_DEG.ordinal() + 1];
+        this.chunk_no = Integer.parseInt(header_fields[Fields.CHUNK_NO.ordinal()]);
     }
 
     @Override
     public String getHeader() {
-        String content = String.format("%d %d %s", super.chunk_no, port, address);
+        String content = String.format("%d %d", chunk_no, port);
         return super.getHeader(content);
     }
 
     @Override
-    public String toString(){
-        return super.toString() + String.format(" %d %s", port, address);
+    public String toString()
+    {
+        return super.toString() + String.format("%d %d", chunk_no, port);
     }
 
     public int getPort() {
         return port;
     }
 
-    public String getAddress() {
-        return address;
+    public int getChunk_no() {
+        return chunk_no;
+    }
+
+    public void setChunkNo(int chunk_no) {
+        this.chunk_no = chunk_no;
     }
 }

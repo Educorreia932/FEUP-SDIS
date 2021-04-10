@@ -32,11 +32,4 @@ public class GetChunkMessage extends Message {
         return chunk_no;
     }
 
-    public int getPort(){
-        return 0;
-    };
-
-    public String getAddress(){
-        return "";
-    };
 }

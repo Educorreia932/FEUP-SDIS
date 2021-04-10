@@ -1,9 +1,6 @@
 package channels;
 
-import handlers.DeleteMessageHandler;
-import handlers.GetChunkMessageHandler;
-import handlers.RemovedMessageHandler;
-import handlers.StoredMessageHandler;
+import handlers.*;
 import messages.*;
 import peer.Peer;
 
@@ -33,20 +30,23 @@ public class MC_Channel extends Channel {
                 break;
 
             case "GETCHUNK":
-                GetChunkMessage get_chunk_msg;
 
-                if (header_fields[Fields.VERSION.ordinal()].equals("2.0"))
-                    get_chunk_msg = new GetChunkMessageV2(header_fields);
+                if (header_fields[Fields.VERSION.ordinal()].equals("2.0")){
+                    GetChunkMessageV2 get_chunk_msg_v2 = new GetChunkMessageV2(header_fields);
+                    // Log
+                    System.out.printf("> Peer %d received: %s\n", peer.id, get_chunk_msg_v2);
+                    // GetChunk Message Handler
+                    pool.execute(new GetChunkMessageHandlerV2(get_chunk_msg_v2, peer));
+                }
 
-                else
-                    get_chunk_msg = new GetChunkMessage(header_fields);
+                else{
+                    GetChunkMessage get_chunk_msg = new GetChunkMessage(header_fields);;
+                    // Log
+                    System.out.printf("> Peer %d received: %s\n", peer.id, get_chunk_msg);
+                    // GetChunk Message Handler
+                    pool.execute(new GetChunkMessageHandler(get_chunk_msg, peer));
 
-                // Log
-                System.out.printf("> Peer %d received: %s\n", peer.id, get_chunk_msg);
-
-                // GetChunk Message Handler
-                pool.execute(new GetChunkMessageHandler(get_chunk_msg, peer));
-
+                }
                 break;
 
             case "DELETE":

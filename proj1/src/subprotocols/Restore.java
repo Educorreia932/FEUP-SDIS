@@ -7,9 +7,11 @@ import messages.GetChunkMessageV2;
 import peer.Peer;
 import utils.Pair;
 
+import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class Restore extends Subprotocol {
@@ -17,49 +19,21 @@ public class Restore extends Subprotocol {
     private final int number_of_chunks;
     private final String file_id;
     private final String file_path;
-    private GetChunkMessage message;
-    private ServerSocket socket;
+    private final GetChunkMessage message;
 
-    public Restore(Peer initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel restore_channel, MC_Channel control_channel) {
+    public Restore(Peer initiator_peer, String version, String file_path, String file_id, int number_of_chunks,
+                   MDR_Channel restore_channel, MC_Channel control_channel) {
         super(control_channel, version, initiator_peer);
 
         this.restore_channel = restore_channel;
         this.number_of_chunks = number_of_chunks;
         this.file_id = file_id;
         this.file_path = file_path;
-
-        if (version.equals("2.0")) {
-            try {
-                socket = new ServerSocket(0);
-                message = new GetChunkMessageV2(version, initiator_peer.id, file_id, 0,
-                        socket.getLocalPort(), socket.getInetAddress().toString());
-            }
-
-            catch (IOException e) {
-                e.printStackTrace();
-                System.err.println("Failed to open socket. Aborting backup...");
-            }
-        }
-
-        else
-            this.message = new GetChunkMessage(version, initiator_peer.id, file_id, 0);
+        this.message = new GetChunkMessage(version, initiator_peer.id, file_id, 0);
     }
 
     @Override
     public void run() {
-        if (version.equals("2.0")) {
-            try {
-                socket.accept();
-            }
-
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (socket.isClosed())
-                return;
-        }
-
         int chunk_no = 0;
 
         while (chunk_no < number_of_chunks) {
