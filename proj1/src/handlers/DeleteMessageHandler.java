@@ -5,10 +5,10 @@ import peer.Peer;
 
 import java.io.File;
 
-public class DeleteMessageHandler extends MessageHandler{
+public class DeleteMessageHandler extends MessageHandler {
     private final Peer peer;
 
-    public DeleteMessageHandler(DeleteMessage delete_msg, Peer peer){
+    public DeleteMessageHandler(DeleteMessage delete_msg, Peer peer) {
         super(delete_msg.getFile_id(), peer.storage);
         this.peer = peer;
     }
@@ -28,14 +28,12 @@ public class DeleteMessageHandler extends MessageHandler{
             // Remove all chunks from directory
             File[] chunks = folder.listFiles();
 
-            if (chunks != null) {
-                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++) {
-                    if (chunks[chunk_no].delete()) { // Delete file
+            if (chunks != null)
+                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++)
+                    if (chunks[chunk_no].delete()) // Delete file
                         // Delete from map
                         storage.removeStoredChunk(file_id, chunk_no);
-                    }
-                }
-            }
+
             folder.delete(); // Delete folder
         }
     }

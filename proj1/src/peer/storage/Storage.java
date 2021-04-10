@@ -210,6 +210,7 @@ public class Storage implements Serializable {
     public void removeStoredChunk(String file_id, int chunk_no){
         // Remove from map
         Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
+
         if (chunk != null) // Update used space
             used_space.set(used_space.get() - chunk.getSize());
     }
