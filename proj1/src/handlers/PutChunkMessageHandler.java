@@ -74,6 +74,8 @@ public class PutChunkMessageHandler extends MessageHandler{
 
             if (chunk_size != 0)  // Don't write if empty chunk
                 stream.write(body);
+            stream.flush();
+            stream.close();
 
             // Add to map
             storage.addStoredChunk(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer.id));

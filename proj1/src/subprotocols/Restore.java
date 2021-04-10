@@ -3,15 +3,11 @@ package subprotocols;
 import channels.MC_Channel;
 import channels.MDR_Channel;
 import messages.GetChunkMessage;
-import messages.GetChunkMessageV2;
 import peer.Peer;
 import utils.Pair;
 
-import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 
 public class Restore extends Subprotocol {
@@ -72,6 +68,7 @@ public class Restore extends Subprotocol {
                 stream.write(chunk);
 
             stream.flush();
+            stream.close();
             return true;
         }
         catch (IOException e) {

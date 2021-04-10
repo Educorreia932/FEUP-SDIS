@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +27,6 @@ public class Storage implements Serializable {
         this.max_space = new AtomicLong(Long.MAX_VALUE);
         this.used_space = new AtomicLong(0);
     }
-
 
     public void makeDirectories() {
         File directory = new File(FILESYSTEM_FOLDER + peer_id + BACKUP_FOLDER);

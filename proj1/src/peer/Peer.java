@@ -4,7 +4,6 @@ import channels.*;
 import peer.storage.BackedUpFile;
 import peer.storage.Storage;
 import subprotocols.*;
-import utils.Pair;
 
 import java.io.*;
 import java.rmi.AlreadyBoundException;
@@ -116,7 +115,7 @@ public class Peer implements RMI {
 
         Runnable task;
         if(version.equals("2.0"))
-            task = new RestoreV2(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+            task = new RestoreEnhanced(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         else task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }

@@ -2,7 +2,7 @@ package handlers;
 
 import channels.MDR_Channel;
 import messages.ChunkMessage;
-import messages.GetChunkMessageV2;
+import messages.GetChunkEnhancedMsg;
 import peer.Peer;
 import peer.storage.Storage;
 import utils.Pair;
@@ -13,14 +13,14 @@ import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class GetChunkMessageHandlerV2 extends MessageHandler {
+public class GetChunkEnhancedHandler extends MessageHandler {
     private final int chunk_no;
     private final int peer_id;
     private final String version;
     private final MDR_Channel restore_channel;
     private Socket socket;
 
-    public GetChunkMessageHandlerV2(GetChunkMessageV2 get_chunk_msg, Peer peer) {
+    public GetChunkEnhancedHandler(GetChunkEnhancedMsg get_chunk_msg, Peer peer) {
         super(get_chunk_msg.getFile_id(), peer.storage);
         chunk_no = get_chunk_msg.getChunk_no();
         version = get_chunk_msg.getVersion();

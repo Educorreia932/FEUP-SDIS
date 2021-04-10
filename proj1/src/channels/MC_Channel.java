@@ -32,11 +32,11 @@ public class MC_Channel extends Channel {
             case "GETCHUNK":
 
                 if (header_fields[Fields.VERSION.ordinal()].equals("2.0")){
-                    GetChunkMessageV2 get_chunk_msg_v2 = new GetChunkMessageV2(header_fields);
+                    GetChunkEnhancedMsg get_chunk_msg_v2 = new GetChunkEnhancedMsg(header_fields);
                     // Log
                     System.out.printf("> Peer %d received: %s\n", peer.id, get_chunk_msg_v2);
                     // GetChunk Message Handler
-                    pool.execute(new GetChunkMessageHandlerV2(get_chunk_msg_v2, peer));
+                    pool.execute(new GetChunkEnhancedHandler(get_chunk_msg_v2, peer));
                 }
 
                 else{
