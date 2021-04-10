@@ -52,7 +52,9 @@ public class Restore extends Subprotocol {
         }
         if (restoreFileChunks())
             System.out.println("RESTORE of " + file_path + " finished.");
-        else System.out.println("Failed to restore files of " + file_path);
+
+        else
+            System.out.println("Failed to restore files of " + file_path);
     }
 
     private boolean restoreFileChunks() {

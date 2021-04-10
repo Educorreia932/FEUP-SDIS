@@ -7,6 +7,7 @@ import subprotocols.*;
 
 import java.io.*;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -16,7 +17,7 @@ import java.util.concurrent.Executors;
 
 public class Peer implements RMI {
     public int id;
-    private String version; // TODO: Should the Peer store a version and not only the subprotocols?
+    private String version;
     private String access_point;
     private MC_Channel control_channel;
     private MDB_Channel backup_channel;
@@ -30,7 +31,7 @@ public class Peer implements RMI {
             System.exit(1);
         }
 
-        Peer peer = new Peer(args); // create peer
+        Peer peer = new Peer(args); // Create peer
 
         try {
             //RMI
@@ -39,6 +40,18 @@ public class Peer implements RMI {
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.getRegistry();
             registry.bind(peer.access_point, RMI_stub);
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down ...");
+
+                try {
+                    registry.unbind(peer.access_point);
+                }
+
+                catch (RemoteException | NotBoundException e) {
+                    System.err.println("ERROR: Failed to unbind peer object in the registry.\n Aborting...");
+                }
+            }));
         }
 
         catch (RemoteException | AlreadyBoundException e) {
@@ -92,6 +105,7 @@ public class Peer implements RMI {
         else {// TODO: Fazer isto dentro do backup
             BackedUpFile new_file = new BackedUpFile(file.toPath(), replication_degree);
             String old_file_id = storage.wasFileModified(file.getPath(), new_file.getId());
+
             if (old_file_id != null) { // File was modified
                 Delete delete_task = new Delete(this, version, old_file_id, control_channel);
                 pool.execute(delete_task);
@@ -116,7 +130,8 @@ public class Peer implements RMI {
         Runnable task;
         if(version.equals("2.0"))
             task = new RestoreEnhanced(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
-        else task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
+        else
+            task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         pool.execute(task);
     }
 
