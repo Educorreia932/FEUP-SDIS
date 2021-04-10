@@ -17,7 +17,7 @@ rmi:
 	rmiregistry -J-Djava.class.path=$(OUT_DIR)
 
 peer1:
-	java -cp $(OUT_DIR) peer.Peer 1.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+	java -cp $(OUT_DIR) peer.Peer 2.0 1 1 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 peer2:
 	java -cp $(OUT_DIR) peer.Peer 1.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
@@ -32,10 +32,10 @@ peer5:
 	java -cp $(OUT_DIR) peer.Peer 1.0 5 5 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
-	java -cp $(OUT_DIR) test.TestApp 1 BACKUP isto.txt 3
+	java -cp $(OUT_DIR) test.TestApp 1 BACKUP isto.txt 1
 
 restore:
-	java -cp $(OUT_DIR) test.TestApp 1 RESTORE carlota.jpg
+	java -cp $(OUT_DIR) test.TestApp 1 RESTORE isto.txt
 
 delete:
 	java -cp $(OUT_DIR) test.TestApp 1 DELETE empty
@@ -44,4 +44,4 @@ reclaim:
 	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 0
 
 state:
-	java -cp $(OUT_DIR) test.TestApp 2 STATE
+	java -cp $(OUT_DIR) test.TestApp 1 STATE

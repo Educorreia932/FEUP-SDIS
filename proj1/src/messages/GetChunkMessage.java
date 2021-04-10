@@ -1,7 +1,7 @@
 package messages;
 
 public class GetChunkMessage extends Message {
-    private int chunk_no;
+    protected int chunk_no;
 
     public GetChunkMessage(String version, int sender_id, String file_id, int chunk_no) {
         super(version, "GETCHUNK", sender_id, file_id);
@@ -31,4 +31,12 @@ public class GetChunkMessage extends Message {
     public int getChunk_no() {
         return chunk_no;
     }
+
+    public int getPort(){
+        return 0;
+    };
+
+    public String getAddress(){
+        return "";
+    };
 }

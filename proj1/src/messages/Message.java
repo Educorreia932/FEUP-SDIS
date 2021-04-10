@@ -1,5 +1,6 @@
 package messages;
 
+import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 
 public abstract class Message {

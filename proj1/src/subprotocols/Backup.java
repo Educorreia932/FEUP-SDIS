@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class Backup extends Subprotocol {
     private final File file;
-    private final PutChunkMessage message;
+    private PutChunkMessage message;
     private final int replication_degree;
     private final MDB_Channel mdb_channel;
     private final int number_of_chunks;
@@ -26,7 +26,7 @@ public class Backup extends Subprotocol {
         this.replication_degree = replication_degree;
         this.number_of_chunks = number_of_chunks;
         this.mdb_channel = mdb_channel;
-        this.message = new PutChunkMessage(version, initiator_peer.id, file_id, replication_degree, 0);
+        message = new PutChunkMessage(version, initiator_peer.id, file_id, replication_degree, 0);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class Backup extends Subprotocol {
 
                 message_bytes = message.getBytes(chunk, read_bytes);
 
-                if(!sendPutChunk(message_bytes)) {
+                if (!sendPutChunk(message_bytes)) {
                     System.out.println("Failed to achieve desired replication degree. Giving up...");
                     return; // Give up
                 }
@@ -60,7 +60,7 @@ public class Backup extends Subprotocol {
 
     public boolean sendPutChunk(byte[] message_bytes) throws InterruptedException {
         short MAX_TRIES = 5;
-        int  sleep_time = 1000, perceived_rp;
+        int sleep_time = 1000, perceived_rp;
 
         for (int tries = 1; tries <= MAX_TRIES; tries++) {
             // Send message to MDB multicast data channel
@@ -73,6 +73,7 @@ public class Backup extends Subprotocol {
 
             if (perceived_rp < replication_degree)
                 sleep_time *= 2;  // Double sleep time
+
             else                  // Achieved desired replication degree
                 return true;
         }
