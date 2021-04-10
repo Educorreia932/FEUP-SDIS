@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Restore extends Subprotocol {
-    private MDR_Channel restore_channel;
-    private int number_of_chunks;
+    private final MDR_Channel restore_channel;
+    private final int number_of_chunks;
     private final String file_id;
     private final String file_path;
     private final GetChunkMessage message;
@@ -44,7 +44,6 @@ public class Restore extends Subprotocol {
 
                 if (has_chunk) // Chunk received => Skip to next chunk
                     message.setChunkNo(++chunk_no);
-
             }
             catch (InterruptedException e) {
                 e.printStackTrace();

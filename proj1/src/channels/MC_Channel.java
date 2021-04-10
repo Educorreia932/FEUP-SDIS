@@ -1,9 +1,9 @@
 package channels;
 
-import MessageHandlers.DeleteMessageHandler;
-import MessageHandlers.GetChunkMessageHandler;
-import MessageHandlers.RemovedMessageHandler;
-import MessageHandlers.StoredMessageHandler;
+import handlers.DeleteMessageHandler;
+import handlers.GetChunkMessageHandler;
+import handlers.RemovedMessageHandler;
+import handlers.StoredMessageHandler;
 import messages.*;
 import peer.Peer;
 

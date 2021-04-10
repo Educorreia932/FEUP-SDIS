@@ -1,4 +1,4 @@
-package MessageHandlers;
+package handlers;
 
 import peer.storage.Storage;
 

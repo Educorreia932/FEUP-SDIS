@@ -1,6 +1,6 @@
 package channels;
 
-import MessageHandlers.ChunkMessageHandler;
+import handlers.ChunkMessageHandler;
 import messages.ChunkMessage;
 import messages.Fields;
 import messages.Message;

@@ -1,4 +1,4 @@
-package MessageHandlers;
+package handlers;
 
 import messages.StoredMessage;
 import peer.Peer;

@@ -1,11 +1,10 @@
-package MessageHandlers;
+package handlers;
 
 import channels.MC_Channel;
 import messages.PutChunkMessage;
 import messages.StoredMessage;
 import peer.Peer;
 import peer.storage.Chunk;
-import peer.storage.Storage;
 
 import java.io.File;
 import java.io.FileOutputStream;

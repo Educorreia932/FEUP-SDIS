@@ -1,6 +1,6 @@
 package channels;
 
-import MessageHandlers.PutChunkMessageHandler;
+import handlers.PutChunkMessageHandler;
 import messages.Fields;
 import messages.Message;
 import messages.PutChunkMessage;

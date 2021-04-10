@@ -1,4 +1,4 @@
-package MessageHandlers;
+package handlers;
 
 import channels.MDR_Channel;
 import messages.ChunkMessage;

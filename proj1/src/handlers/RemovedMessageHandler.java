@@ -1,4 +1,4 @@
-package MessageHandlers;
+package handlers;
 
 import messages.RemovedMessage;
 import peer.Peer;
