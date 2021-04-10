@@ -14,9 +14,6 @@ public class TestApp {
         }
 
         try {
-            // TODO: Remove sleep
-            Thread.sleep(500);
-
             Registry registry = LocateRegistry.getRegistry(); // Default port: 1099
             String peer_ap = args[0];
             RMI stub = (RMI) registry.lookup(peer_ap);
@@ -75,7 +72,7 @@ public class TestApp {
             }
         }
 
-        catch (RemoteException | NotBoundException | InterruptedException e) {
+        catch (RemoteException | NotBoundException e) {
             System.err.println("ERROR: Failed to connect to remote interface. \nAborting...");
             e.printStackTrace();
         }

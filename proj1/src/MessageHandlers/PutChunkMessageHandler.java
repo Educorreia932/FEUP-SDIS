@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class PutChunkMessageHandler extends MessageHandler{
     private final byte[] body;
@@ -36,17 +38,16 @@ public class PutChunkMessageHandler extends MessageHandler{
         if (putChunk()) {
             peer.saveStorage(); // Update storage
 
-            try { // Sleep (0-400ms)
-                Thread.sleep(new Random().nextInt(400));
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // Send STORED msg
-            StoredMessage store_msg = new StoredMessage(version, peer.id, file_id, chunk_no);
-            control_channel.send(store_msg.getBytes(null, 0));
-            System.out.printf("< Peer %d sent: %s\n", peer.id, store_msg.toString()); // Log
+            // Sleep
+            int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
+            ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
+            scheduledPool.schedule(() -> {
+                // Send STORED msg
+                StoredMessage store_msg = new StoredMessage(version, peer.id, file_id, chunk_no);
+                control_channel.send(store_msg.getBytes(null, 0));
+                // Log
+                System.out.printf("< Peer %d sent: %s\n", peer.id, store_msg.toString());
+            }, sleep_time, TimeUnit.MILLISECONDS);
         }
     }
 

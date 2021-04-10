@@ -7,6 +7,8 @@ import subprotocols.Backup;
 
 import java.io.File;
 import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class RemovedMessageHandler extends MessageHandler {
     private final int chunk_no;
@@ -37,18 +39,17 @@ public class RemovedMessageHandler extends MessageHandler {
             File chunk_file = storage.getFile(file_id, chunk_no);
 
             if (chunk_file != null) {
-                try {
-                    // TODO: Abort if received PUTCHUNK
-                    Thread.sleep(new Random().nextInt(400)); // Sleep (0-400)ms
 
+                //Sleep
+                int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
+                ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
+                scheduledPool.schedule(() -> {
+                    // TODO: Abort if received PUTCHUNK
                     Backup task = new Backup(peer, version, chunk_file, chunk.getFile_id(),
                             1, chunk.getDesired_rep_deg(), peer.getBackup_channel(),
                             peer.getControl_channel());
                     peer.pool.execute(task);
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                }, sleep_time, TimeUnit.MILLISECONDS);
             }
         }
     }

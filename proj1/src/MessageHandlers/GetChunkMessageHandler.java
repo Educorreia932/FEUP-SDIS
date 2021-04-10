@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class GetChunkMessageHandler extends MessageHandler{
     private final int chunk_no;
@@ -47,16 +49,21 @@ public class GetChunkMessageHandler extends MessageHandler{
             // Get message byte array
             message_bytes = message.getBytes(body, read_bytes);
 
-            //Sleep
-            restore_channel.received_chunk_msg.set(false);      // TODO: many protocols at same time dont work ???
-            Thread.sleep(new Random().nextInt(400));       // Sleep (0-400)ms
-            if (restore_channel.received_chunk_msg.get()) return; // Abort if received chunk message
+            restore_channel.received_chunk_msg.set(false); // TODO: many protocols at same time dont work ???
 
-            // Send message
-            restore_channel.send(message_bytes);
-            System.out.printf("< Peer %d Sent: %s\n", peer_id, message.toString()); // Log
+            // Sleep
+            int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
+            ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
+            scheduledPool.schedule(() -> {
+                // Abort if received chunk message
+                if (restore_channel.received_chunk_msg.get()) return;
+
+                // Send message
+                restore_channel.send(message_bytes);
+                System.out.printf("< Peer %d Sent: %s\n", peer_id, message.toString()); // Log
+            }, sleep_time, TimeUnit.MILLISECONDS);
         }
-        catch (IOException | InterruptedException e) {
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
