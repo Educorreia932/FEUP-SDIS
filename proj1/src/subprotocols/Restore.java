@@ -30,11 +30,10 @@ public class Restore extends Subprotocol {
     @Override
     public void run() {
         int chunk_no = 0;
-        byte[] message_bytes = message.getBytes(null, 0);
 
         while (chunk_no < number_of_chunks) {
             // Send message
-            control_channel.send(message_bytes);
+            control_channel.send(message.getBytes(null, 0));
             System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
 
             try {
@@ -43,10 +42,9 @@ public class Restore extends Subprotocol {
                 // Check if received chunk
                 boolean has_chunk = restore_channel.received_chunks.containsKey(new Pair<>(file_id, chunk_no));
 
-                if (has_chunk) { // Chunk received => Skip to next chunk
-                    chunk_no++;
-                    message.setChunkNo(chunk_no);
-                }
+                if (has_chunk) // Chunk received => Skip to next chunk
+                    message.setChunkNo(++chunk_no);
+
             }
             catch (InterruptedException e) {
                 e.printStackTrace();

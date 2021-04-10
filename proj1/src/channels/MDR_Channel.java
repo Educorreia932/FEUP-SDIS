@@ -7,7 +7,6 @@ import messages.Message;
 import peer.Peer;
 import utils.Pair;
 
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
