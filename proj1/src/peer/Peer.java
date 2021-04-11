@@ -54,6 +54,8 @@ public class Peer implements RMI {
                 catch (RemoteException | NotBoundException e) {
                     System.err.println("ERROR: Failed to unbind peer object in the registry.\n Aborting...");
                 }
+
+                peer.pool.shutdownNow();
             }));
         }
 
