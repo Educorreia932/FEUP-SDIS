@@ -15,7 +15,7 @@ public class Storage implements Serializable {
     public AtomicLong used_space;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
-    public static final String FILESYSTEM_FOLDER = "build/filesystem/peer";
+    public static final String FILESYSTEM_FOLDER = "./filesystem/peer";
     public static final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
     private Set<String> deleted_files; // For enhanced delete:
