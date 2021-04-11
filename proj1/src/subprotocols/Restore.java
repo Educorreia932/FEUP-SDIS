@@ -70,6 +70,7 @@ public class Restore extends Subprotocol {
      * Write restored file chunks
      */
     private boolean restoreFileChunks() {
+        System.out.println("Num apareceu");
         ArrayList<byte[]> chunks = new ArrayList<>(); // Array of chunks by order
         int buffer_size = 0;
 
@@ -85,6 +86,7 @@ public class Restore extends Subprotocol {
         try {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             ByteBuffer buffer = ByteBuffer.allocate(buffer_size);
+            System.out.println("Buffer size" + buffer_size);
 
             for (byte[] chunk : chunks)
                 buffer.put(chunk);

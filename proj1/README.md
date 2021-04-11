@@ -51,7 +51,7 @@ There isn't any *setup* script, because our code already performs the necessary 
 - 📁 **[scripts](scripts)** - Shell scripts to run the project.
 - 📁 **[src](src)** - Source code for the project.
     - 📁 **[build](src/build)** - Compiled project files.
-        - 📁 **[build](src/build/filesystem)** - Filesystem used by the backup service.
+        - 📁 **[filesystem](src/build/filesystem)** - Filesystem used by the backup service.
     - 📁 **[channels](src/channels)** - Channels to be used by peers for communication.
     - 📁 **[handlers](src/handlers)** - Message handlers.
     - 📁 **[messages](src/messages)** - Control messages.

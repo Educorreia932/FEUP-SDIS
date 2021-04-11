@@ -23,8 +23,6 @@ public class Backup extends Subprotocol {
     private final MDB_Channel mdb_channel;
     private final int number_of_chunks;
 
-    private static final int MAX_CHUNK_SIZE = 64000;
-
     public Backup(Peer initiator_peer, String version, File file, String file_id, int number_of_chunks,
                   int replication_degree, MDB_Channel mdb_channel, MC_Channel control_channel) {
         super(control_channel, version, initiator_peer);
@@ -42,21 +40,21 @@ public class Backup extends Subprotocol {
         byte[] message_bytes;
 
         Path path = Paths.get(file.getPath());
+        int position = 0;
 
         try {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
             ByteBuffer buffer = ByteBuffer.allocate(Storage.MAX_CHUNK_SIZE);
 
             for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) {
-                Future<Integer> operation = fileChannel.read(buffer, 0); // Read from file
+                Future<Integer> operation = fileChannel.read(buffer, position); // Read from file
 
                 message.setChunkNo(chunk_no);
 
                 if ((read_bytes = operation.get()) == -1)
                     read_bytes = 0; // Reached EOF
 
-                System.out.println("BACKUP " + read_bytes);
-
+                position += read_bytes;
                 message_bytes = message.getBytes(buffer.array(), read_bytes);
 
                 if (!sendPutChunk(message_bytes)) {
