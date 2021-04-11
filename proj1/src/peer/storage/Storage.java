@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable {
+    private String version;
     private final int peer_id;
     public final AtomicLong max_space;
     public AtomicLong used_space;
@@ -19,13 +21,19 @@ public class Storage implements Serializable {
     public static final String FILESYSTEM_FOLDER = "../filesystem/peer";
     public static final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
+    // For enhanced delete:
+    private Set<String> deleted_files;
 
-    public Storage(int peer_id) {
+    public Storage(int peer_id, String version) {
         backed_up_files = new ConcurrentHashMap<>();
         stored_chunks = new ConcurrentHashMap<>();
         this.peer_id = peer_id;
         this.max_space = new AtomicLong(Long.MAX_VALUE);
         this.used_space = new AtomicLong(0);
+        this.version = version;
+
+        if(version.equals("2.0"))
+            deleted_files = new ConcurrentHashMap<String, String>().newKeySet();
     }
 
     public void makeDirectories() {
@@ -174,6 +182,8 @@ public class Storage implements Serializable {
 
     public void addBackedUpFile(BackedUpFile file) {
         backed_up_files.put(file.getPath(), file);
+        if(version.equals("2.0"))
+            deleted_files.remove(file.getId());
     }
 
     public void addStoredChunk(String key, Chunk value){
@@ -183,6 +193,8 @@ public class Storage implements Serializable {
 
     public void removeBackedUpFile(BackedUpFile file) {
         backed_up_files.remove(file.getPath());
+        if(version.equals("2.0"))
+            deleted_files.add(file.getId());
     }
 
     public Chunk removeRandomChunk() {
@@ -214,28 +226,6 @@ public class Storage implements Serializable {
             used_space.set(used_space.get() - chunk.getSize());
     }
 
-    public void deleteAllChunksFromFile(String file_id) {
-        String path = getFilePath(file_id);
-        File folder = new File(path);
-
-        if (folder.exists() && folder.isDirectory()) {
-            // Remove all chunks from directory
-            File[] chunks = folder.listFiles();
-
-            if (chunks != null) {
-                for (int chunk_no = 0; chunk_no < chunks.length; chunk_no++) {
-                    if (chunks[chunk_no].delete()) { // Delete file
-                        // Delete from map
-                        Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
-                        if (chunk != null) // Update used space
-                            used_space.set(used_space.get() - chunk.getSize());
-                    }
-                }
-            }
-            folder.delete(); // Delete folder
-        }
-    }
-
     /* BOOLEAN Functions */
 
     private boolean isThereAvailableSpace(int chunk_size){
@@ -255,4 +245,7 @@ public class Storage implements Serializable {
         return (!isFileBackedUp(file_id).get() && isThereAvailableSpace(chunk_size));
     }
 
+    public Set<String> getDeletedFiles() {
+        return deleted_files;
+    }
 }

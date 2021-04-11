@@ -1,6 +1,7 @@
 package peer;
 
 import channels.*;
+import messages.WokeUpMsg;
 import peer.storage.BackedUpFile;
 import peer.storage.Storage;
 import subprotocols.*;
@@ -12,6 +13,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -63,6 +66,11 @@ public class Peer implements RMI {
         peer.pool.execute(peer.backup_channel);
         peer.pool.execute(peer.control_channel);
         peer.pool.execute(peer.restore_channel);
+
+        if(peer.version.equals("2.0")){ // Send woke up msg
+            WokeUpMsg woke_msg = new WokeUpMsg(peer.id);
+            peer.control_channel.send(woke_msg.getBytes(null, 0));
+        }
     }
 
     public Peer(String[] args) {
@@ -88,7 +96,7 @@ public class Peer implements RMI {
 
         catch (IOException | ClassNotFoundException e) {
             // Set up storage
-            storage = new Storage(id);
+            storage = new Storage(id, version);
             storage.makeDirectories();
         }
     }

@@ -64,6 +64,13 @@ public class MC_Channel extends Channel {
                 // Removed Message Handler
                 pool.execute(new RemovedMessageHandler(removed_msg, peer));
                 break;
+
+            case "WOKEUP":
+                WokeUpMsg woke_up_msg = new WokeUpMsg(header_fields);
+                // Log
+                System.out.printf("> Peer %d received: %s\n", peer.id, woke_up_msg.toString());
+                // WokeUp Message Handler
+                pool.execute(new WokeUpMessageHandler(woke_up_msg, peer));
         }
     }
 }
