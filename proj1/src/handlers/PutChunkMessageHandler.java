@@ -5,15 +5,22 @@ import messages.PutChunkMessage;
 import messages.StoredMessage;
 import peer.Peer;
 import peer.storage.Chunk;
+import peer.storage.Storage;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class PutChunkMessageHandler extends MessageHandler{
+public class PutChunkMessageHandler extends MessageHandler {
     private final byte[] body;
     private final int chunk_no;
     private final int replication_degree;
@@ -21,11 +28,11 @@ public class PutChunkMessageHandler extends MessageHandler{
     private final MC_Channel control_channel;
     private final Peer peer;
 
-    public PutChunkMessageHandler(PutChunkMessage put_chunk_msg, byte[] body, Peer peer){
+    public PutChunkMessageHandler(PutChunkMessage put_chunk_msg, byte[] body, Peer peer) {
         super(put_chunk_msg.getFile_id(), peer.storage);
         chunk_no = put_chunk_msg.getChunk_no();
         replication_degree = put_chunk_msg.getReplication_degree();
-        version =  put_chunk_msg.getVersion();
+        version = put_chunk_msg.getVersion();
         this.body = body;
         control_channel = peer.getControl_channel();
         this.peer = peer;
@@ -53,36 +60,52 @@ public class PutChunkMessageHandler extends MessageHandler{
     private boolean putChunk() {
         // Set chunk_size
         int chunk_size = 0;
-        if(body != null) // Chunk is not empty
+
+        if (body != null) // Chunk is not empty
             chunk_size = body.length;
 
         // Checks
         if (storage.isChunkStored(file_id, chunk_no))
             return true; // Chunk already stored
 
-        if(!storage.canStoreChunk(file_id, chunk_size))
+        if (!storage.canStoreChunk(file_id, chunk_size))
             return false; // Can't store chunk
 
         // Make directory
         File directory = new File(storage.getFilePath(file_id));
+
         if (!directory.exists())  // Create folder for file
             if (!directory.mkdirs())
-                return false; // Failed to create folder to store chunk
+                return false;     // Failed to create folder to store chunk
 
         String chunk_path = storage.getFilePath(file_id, chunk_no);
-        try (FileOutputStream stream = new FileOutputStream(chunk_path)) {
+        Path path = Paths.get(chunk_path);
 
-            if (chunk_size != 0)  // Don't write if empty chunk
-                stream.write(body);
-            stream.flush();
-            stream.close();
+        try {
+            AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            ByteBuffer buffer = ByteBuffer.allocate(chunk_size);
+
+            // Don't write if empty chunk
+            if (chunk_size != 0) {
+                buffer.put(body);
+                buffer.flip();
+
+                Future<Integer> operation = fileChannel.write(buffer, 0);
+
+                buffer.clear();
+
+                operation.get();
+            }
 
             // Add to map
             storage.addStoredChunk(chunk_path, new Chunk(file_id, chunk_no, chunk_size, replication_degree, peer.id));
+
             return true;
         }
-        catch (IOException e) {
+
+        catch (IOException | ExecutionException | InterruptedException e) {
             System.err.println("ERROR: Couldn't write chunk to file.");
+
             return false;
         }
     }

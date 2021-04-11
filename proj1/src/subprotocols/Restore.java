@@ -58,6 +58,7 @@ public class Restore extends Subprotocol {
                 e.printStackTrace();
             }
         }
+
         if (restoreFileChunks())
             System.out.println("RESTORE of " + file_path + " finished.");
 
@@ -70,16 +71,20 @@ public class Restore extends Subprotocol {
      */
     private boolean restoreFileChunks() {
         ArrayList<byte[]> chunks = new ArrayList<>(); // Array of chunks by order
+        int buffer_size = 0;
 
-        for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) // Add chunks to array
-            chunks.add(restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no)));
+        // Add chunks to array
+        for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) {
+            byte[] chunk = restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no));
+            chunks.add(chunk);
+            buffer_size += chunk.length;
+        }
 
         Path path = Paths.get(file_path);
 
         try {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-
-            ByteBuffer buffer = ByteBuffer.allocate(chunks.size() * Storage.MAX_CHUNK_SIZE);
+                ByteBuffer buffer = ByteBuffer.allocate(buffer_size);
 
             for (byte[] chunk : chunks)
                 buffer.put(chunk);
