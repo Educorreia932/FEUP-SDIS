@@ -57,12 +57,13 @@ public class Storage implements Serializable {
         else {
             // Updates perceived_rep-deg for stored chunks
             Chunk chunk = stored_chunks.get(getFilePath(file_id, chunk_no));
-            if (chunk != null) // If peer has chunk
+            if (chunk != null) { // If peer has chunk
                 if (increment) // Increment
                     chunk.incrementPerceivedRepDegree(sender_id);
 
                 else // Decrement
                     chunk.decrementPerceivedRepDegree(sender_id);
+            }
         }
     }
 

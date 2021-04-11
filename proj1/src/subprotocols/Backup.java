@@ -22,6 +22,7 @@ public class Backup extends Subprotocol {
     private final int replication_degree;
     private final MDB_Channel mdb_channel;
     private final int number_of_chunks;
+    private int chunk_no;
 
     public Backup(Peer initiator_peer, String version, File file, String file_id, int number_of_chunks,
                   int replication_degree, MDB_Channel mdb_channel, MC_Channel control_channel) {
@@ -32,6 +33,19 @@ public class Backup extends Subprotocol {
         this.number_of_chunks = number_of_chunks;
         this.mdb_channel = mdb_channel;
         message = new PutChunkMessage(version, initiator_peer.id, file_id, replication_degree, 0);
+        chunk_no = 0;
+    }
+
+    public Backup(Peer initiator_peer, String version, File file, String file_id, int number_of_chunks,
+                  int chunk_no, int replication_degree, MDB_Channel mdb_channel, MC_Channel control_channel) {
+        super(control_channel, version, initiator_peer);
+
+        this.file = file;
+        this.replication_degree = replication_degree;
+        this.mdb_channel = mdb_channel;
+        message = new PutChunkMessage(version, initiator_peer.id, file_id, replication_degree, 0);
+        this.chunk_no = chunk_no;
+        this.number_of_chunks = chunk_no + 1;
     }
 
     @Override
@@ -46,7 +60,7 @@ public class Backup extends Subprotocol {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
             ByteBuffer buffer = ByteBuffer.allocate(Storage.MAX_CHUNK_SIZE);
 
-            for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) {
+            for (; chunk_no < number_of_chunks; chunk_no++) {
                 Future<Integer> operation = fileChannel.read(buffer, position); // Read from file
 
                 message.setChunkNo(chunk_no);

@@ -5,12 +5,10 @@ import messages.RemovedMessage;
 import peer.Peer;
 import peer.storage.Chunk;
 import subprotocols.Backup;
-import utils.Pair;
 
 import java.io.File;
 import java.util.Random;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RemovedMessageHandler extends MessageHandler {
     private final int chunk_no;
@@ -18,6 +16,7 @@ public class RemovedMessageHandler extends MessageHandler {
     private final String version;
     private final Peer peer;
     private final MDB_Channel backup_channel;
+    private final AtomicBoolean abort;
 
     public RemovedMessageHandler(RemovedMessage removed_msg, Peer peer) {
         super(removed_msg.getFile_id(), peer.storage);
@@ -26,6 +25,7 @@ public class RemovedMessageHandler extends MessageHandler {
         version = removed_msg.getVersion();
         this.peer = peer;
         backup_channel = peer.getBackup_channel();
+        abort = new AtomicBoolean(false);
     }
 
     @Override
@@ -43,22 +43,30 @@ public class RemovedMessageHandler extends MessageHandler {
             File chunk_file = storage.getFile(file_id, chunk_no);
 
             if (chunk_file != null) {
-                // Clean set
-                backup_channel.received_chunks.remove(Pair.create(file_id, chunk_no));
+                // Subscribe
+                backup_channel.subscribe(this);
+
                 //Sleep
                 int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
-                ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
-                scheduledPool.schedule(() -> {
-
-                    // Abort if received another putchunk msg for the same chunk
-                    if(backup_channel.received_chunks.remove(Pair.create(file_id, chunk_no))) return;
+                try {
+                    Thread.sleep(sleep_time);
+                    // Unsubscribe
+                    backup_channel.unsubscribe(this);
+                    // Abort
+                    if(abort.get()) return;
 
                     Backup task = new Backup(peer, version, chunk_file, chunk.getFile_id(),
-                            1, chunk.getDesired_rep_deg(), peer.getBackup_channel(),
+                            1, chunk_no, chunk.getDesired_rep_deg(), peer.getBackup_channel(),
                             peer.getControl_channel());
                     peer.pool.execute(task);
-                }, sleep_time, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+
+    public void notify(String file_id, int chunk_no){
+        abort.set(file_id.equals(this.file_id) && chunk_no == this.chunk_no);
     }
 }
