@@ -29,7 +29,7 @@ public class Delete extends Subprotocol {
                 // Send message
                 control_channel.send(message_bytes);
                 System.out.printf("< Peer %d sent: %s\n", initiator_peer.id, message.toString());
-            }, 5 * i, TimeUnit.SECONDS);
+            }, 400 * i, TimeUnit.MILLISECONDS);
         }
     }
 }

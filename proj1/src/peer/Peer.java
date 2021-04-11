@@ -72,6 +72,7 @@ public class Peer implements RMI {
         if(peer.version.equals("2.0")){ // Send woke up msg
             WokeUpMsg woke_msg = new WokeUpMsg(peer.id);
             peer.control_channel.send(woke_msg.getBytes(null, 0));
+            System.out.printf("< Peer %d sent: %s\n", id, woke_msg.toString());
         }
     }
 

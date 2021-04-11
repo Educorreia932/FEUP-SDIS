@@ -81,6 +81,11 @@ public abstract class Channel implements Runnable {
     public void send(byte[] buffer) {
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
 
+        if(socket == null) // TODO: tirar
+            System.out.println("socket nulo");
+        if(packet == null)
+            System.out.println("packet nulo");
+
         try {
             socket.send(packet);
         }
