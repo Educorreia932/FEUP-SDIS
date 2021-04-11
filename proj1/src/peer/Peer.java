@@ -67,6 +67,14 @@ public class Peer implements RMI {
         peer.pool.execute(peer.control_channel);
         peer.pool.execute(peer.restore_channel);
 
+        try {
+            Thread.sleep(100); // Wait for the MC Channel to create the socket
+        }
+
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         if (peer.version.equals("2.0")) { // Send woke up msg
             WokeUpMsg woke_msg = new WokeUpMsg(peer.id);
             peer.control_channel.send(woke_msg.getBytes(null, 0));

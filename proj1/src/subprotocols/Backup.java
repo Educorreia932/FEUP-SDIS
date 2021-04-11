@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 
 public class Backup extends Subprotocol {
     private final File file;
-    private PutChunkMessage message;
+    private final PutChunkMessage message;
     private final int replication_degree;
     private final MDB_Channel mdb_channel;
     private final int number_of_chunks;
