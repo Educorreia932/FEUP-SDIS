@@ -84,7 +84,7 @@ public class Restore extends Subprotocol {
 
         try {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                ByteBuffer buffer = ByteBuffer.allocate(buffer_size);
+            ByteBuffer buffer = ByteBuffer.allocate(buffer_size);
 
             for (byte[] chunk : chunks)
                 buffer.put(chunk);
@@ -95,6 +95,8 @@ public class Restore extends Subprotocol {
             buffer.clear();
 
             operation.get();
+
+            fileChannel.close();
 
             return true;
         }
