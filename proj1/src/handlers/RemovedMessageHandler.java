@@ -55,8 +55,7 @@ public class RemovedMessageHandler extends MessageHandler {
                     // Abort
                     if(abort.get()) return;
 
-                    Backup task = new Backup(peer, version, chunk_file, chunk.getFile_id(),
-                            1, chunk_no, chunk.getDesired_rep_deg(), peer.getBackup_channel(),
+                    Backup task = new Backup(peer, version, chunk_file, chunk, peer.getBackup_channel(),
                             peer.getControl_channel());
                     peer.pool.execute(task);
                 } catch (InterruptedException e) {
