@@ -9,17 +9,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Storage implements Serializable {
-    private String version;
+    private final String version;
     private final int peer_id;
     public final AtomicLong max_space;
     public AtomicLong used_space;
     private final ConcurrentHashMap<String, Chunk> stored_chunks;
     private final ConcurrentHashMap<String, BackedUpFile> backed_up_files;
-    public static final String FILESYSTEM_FOLDER = "../filesystem/peer";
+    public static final String FILESYSTEM_FOLDER = "build/filesystem/peer";
     public static final String BACKUP_FOLDER = "/backup/";
     public static int MAX_CHUNK_SIZE = 64000;
-    // For enhanced delete:
-    private Set<String> deleted_files;
+    private Set<String> deleted_files; // For enhanced delete:
 
     public Storage(int peer_id, String version) {
         backed_up_files = new ConcurrentHashMap<>();
@@ -30,7 +29,7 @@ public class Storage implements Serializable {
         this.version = version;
 
         if(version.equals("2.0"))
-            deleted_files = new ConcurrentHashMap<String, String>().newKeySet();
+            deleted_files = ConcurrentHashMap.newKeySet();
     }
 
     public void makeDirectories() {

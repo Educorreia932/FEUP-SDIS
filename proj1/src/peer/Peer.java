@@ -13,8 +13,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -69,10 +67,10 @@ public class Peer implements RMI {
         peer.pool.execute(peer.control_channel);
         peer.pool.execute(peer.restore_channel);
 
-        if(peer.version.equals("2.0")){ // Send woke up msg
+        if (peer.version.equals("2.0")) { // Send woke up msg
             WokeUpMsg woke_msg = new WokeUpMsg(peer.id);
             peer.control_channel.send(woke_msg.getBytes(null, 0));
-            System.out.printf("< Peer %d sent: %s\n", id, woke_msg.toString());
+            System.out.printf("< Peer %d sent: %s\n", peer.id, woke_msg);
         }
     }
 
@@ -139,7 +137,7 @@ public class Peer implements RMI {
         }
 
         Runnable task;
-        if(version.equals("2.0"))
+        if (version.equals("2.0"))
             task = new RestoreEnhanced(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);
         else
             task = new Restore(this, version, file.getPath(), file.getId(), file.getNumberOfChunks(), restore_channel, control_channel);

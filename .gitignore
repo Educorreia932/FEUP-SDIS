@@ -1,6 +1,6 @@
 proj1/.idea
 out
-proj1/filesystem
+proj1/src/build/filesystem
 proj1/proj1.iml
 
 .idea/

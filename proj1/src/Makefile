@@ -1,16 +1,17 @@
 MAKEFLAGS += -j 4
+OUT_DIR = build
+SHELL = /bin/bash
 
-OUT_DIR = ../build
+.PHONY: all build clean
 
 all: rmi peer1 peer2 backup
 
 build:
-	javac -d $(OUT_DIR) test/*.java
-	javac -d $(OUT_DIR) peer/*.java
+	javac -d $(OUT_DIR) */*.java
 
 clean:
 	rm -rf $(OUT_DIR)
-	rm -rf ../filesystem
+	rm -rf $(OUT_DIR)/filesystem
 
 rmi:
 	killall --quiet rmiregistry || true
@@ -23,7 +24,7 @@ peer2:
 	java -cp $(OUT_DIR) peer.Peer 2.0 2 2 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 peer3:
-	java -cp $(OUT_DIR) peer.Peer 1.0 3 3 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
+	java -cp $(OUT_DIR) peer.Peer 2.0 3 3 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 peer4:
 	java -cp $(OUT_DIR) peer.Peer 1.0 4 4 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
