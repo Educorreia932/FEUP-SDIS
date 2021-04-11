@@ -1,10 +1,7 @@
 package peer.storage;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -222,6 +219,7 @@ public class Storage implements Serializable {
     public void removeStoredChunk(String file_id, int chunk_no){
         // Remove from map
         Chunk chunk = stored_chunks.remove(getFilePath(file_id, chunk_no));
+
         if (chunk != null) // Update used space
             used_space.set(used_space.get() - chunk.getSize());
     }

@@ -4,10 +4,17 @@ import channels.MC_Channel;
 import channels.MDB_Channel;
 import messages.PutChunkMessage;
 import peer.Peer;
+import peer.storage.Storage;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Backup extends Subprotocol {
     private final File file;
@@ -32,27 +39,41 @@ public class Backup extends Subprotocol {
     @Override
     public void run() {
         int read_bytes;
-        byte[] chunk = new byte[MAX_CHUNK_SIZE], message_bytes;
+        byte[] message_bytes;
 
-        try (FileInputStream inputStream = new FileInputStream(file.getPath())) {
+        Path path = Paths.get(file.getPath());
+
+        try {
+            AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+            ByteBuffer buffer = ByteBuffer.allocate(Storage.MAX_CHUNK_SIZE);
+
             for (int chunk_no = 0; chunk_no < number_of_chunks; chunk_no++) {
+                Future<Integer> operation = fileChannel.read(buffer, 0); // Read from file
+
                 message.setChunkNo(chunk_no);
 
-                // Read from file
-                if ((read_bytes = inputStream.read(chunk)) == -1)
+                if ((read_bytes = operation.get()) == -1)
                     read_bytes = 0; // Reached EOF
 
-                message_bytes = message.getBytes(chunk, read_bytes);
+                System.out.println("BACKUP " + read_bytes);
+
+                message_bytes = message.getBytes(buffer.array(), read_bytes);
 
                 if (!sendPutChunk(message_bytes)) {
                     System.out.println("Failed to achieve desired replication degree. Giving up...");
+
                     return; // Give up
                 }
+
+                buffer.clear();
             }
+
             System.out.println("BACKUP of " + file.getPath() + " finished.");
+
+            fileChannel.close();
         }
 
-        catch (IOException | InterruptedException e) {
+        catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
             System.out.println("ERROR: Failed to read chunks. Aborting backup...");
         }
@@ -77,6 +98,7 @@ public class Backup extends Subprotocol {
             else                  // Achieved desired replication degree
                 return true;
         }
+
         return false; // Max tries => give up
     }
 }

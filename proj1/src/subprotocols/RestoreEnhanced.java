@@ -8,10 +8,16 @@ import messages.Message;
 import peer.Peer;
 
 import java.io.DataInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class RestoreEnhanced extends Subprotocol {
     private final MDR_Channel restore_channel;
@@ -43,13 +49,15 @@ public class RestoreEnhanced extends Subprotocol {
 
     @Override
     public void run() {
-        if (socket.isClosed()) return;
+        if (socket.isClosed())
+            return;
 
         int chunk_no = 0;
         byte[] msg = new byte[65000];
+        Path path = Paths.get(file_path);
 
         try {
-            FileOutputStream stream = new FileOutputStream(file_path);
+            AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
 
             while (chunk_no < number_of_chunks) {
                 // Send message
@@ -69,26 +77,37 @@ public class RestoreEnhanced extends Subprotocol {
 
                 // Log
                 ChunkMessage chunk_msg = new ChunkMessage(header_fields);
-                System.out.printf("< Peer %d received: %s\n", initiator_peer.id, chunk_msg.toString());
+                System.out.printf("< Peer %d received: %s\n", initiator_peer.id, chunk_msg);
 
                 // Write to file
                 byte[] body = Message.getBodyBytes(msg, msg_len, header.length);
-                if(body != null){
-                    stream.write(body);
-                    stream.flush();
+
+                if (body != null) {
+                    ByteBuffer buffer = ByteBuffer.allocate(body.length);
+                    buffer.put(body);
+                    buffer.flip();
+
+                    Future<Integer> operation = fileChannel.write(buffer, 0);
+                    buffer.clear();
+
+                    operation.get();
                 }
 
                 // Close connection
                 clientSocket.close();
+
                 // Update chunk
                 message.setChunkNo(++chunk_no);
             }
             // Close server socket and file
             socket.close();
-            stream.close();
-        } catch (IOException | InterruptedException e) {
+            fileChannel.close();
+        }
+
+        catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+
         System.out.println("RESTORE of " + file_path + " finished.");
     }
 }
