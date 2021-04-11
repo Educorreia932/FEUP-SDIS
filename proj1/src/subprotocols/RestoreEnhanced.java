@@ -20,9 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RestoreEnhanced extends Subprotocol {
-    private final MDR_Channel restore_channel;
     private final int number_of_chunks;
-    private final String file_id;
     private final String file_path;
     private GetChunkEnhancedMsg message;
     private ServerSocket socket;
@@ -30,9 +28,7 @@ public class RestoreEnhanced extends Subprotocol {
     public RestoreEnhanced(Peer initiator_peer, String version, String file_path, String file_id, int number_of_chunks, MDR_Channel restore_channel, MC_Channel control_channel) {
         super(control_channel, version, initiator_peer);
 
-        this.restore_channel = restore_channel;
         this.number_of_chunks = number_of_chunks;
-        this.file_id = file_id;
         this.file_path = file_path;
 
         try {
@@ -55,6 +51,7 @@ public class RestoreEnhanced extends Subprotocol {
         int chunk_no = 0;
         byte[] msg = new byte[65000];
         Path path = Paths.get(file_path);
+        int position = 0;
 
         try {
             AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
@@ -87,10 +84,10 @@ public class RestoreEnhanced extends Subprotocol {
                     buffer.put(body);
                     buffer.flip();
 
-                    Future<Integer> operation = fileChannel.write(buffer, 0);
+                    Future<Integer> operation = fileChannel.write(buffer, position);
                     buffer.clear();
 
-                    operation.get();
+                    position += operation.get();
                 }
 
                 // Close connection
@@ -99,6 +96,7 @@ public class RestoreEnhanced extends Subprotocol {
                 // Update chunk
                 message.setChunkNo(++chunk_no);
             }
+
             // Close server socket and file
             socket.close();
             fileChannel.close();

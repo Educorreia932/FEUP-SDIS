@@ -33,13 +33,13 @@ peer5:
 	java -cp $(OUT_DIR) peer.Peer 1.0 5 5 224.0.0.15 8001 224.0.0.16 8002 224.0.0.17 8003
 
 backup:
-	java -cp $(OUT_DIR) test.TestApp 1 BACKUP kglw.gif 1
+	java -cp $(OUT_DIR) test.TestApp 1 BACKUP dog.jpg 1
 
 restore:
-	java -cp $(OUT_DIR) test.TestApp 1 RESTORE kglw.gif
+	java -cp $(OUT_DIR) test.TestApp 1 RESTORE dog.jpg
 
 delete:
-	java -cp $(OUT_DIR) test.TestApp 1 DELETE kglw.gif
+	java -cp $(OUT_DIR) test.TestApp 1 DELETE dog.jpg
 
 reclaim:
 	java -cp $(OUT_DIR) test.TestApp 2 RECLAIM 99999999
