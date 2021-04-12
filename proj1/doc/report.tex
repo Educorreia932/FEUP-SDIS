@@ -1,10 +1,19 @@
 \documentclass[11pt]{report}
 
-\usepackage{minted}
-
 \usepackage[utf8]{inputenc}
 \usepackage{indentfirst}
 \usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\usepackage{minted}
+
+\geometry{
+    a4paper,
+    total={170mm, 257mm},
+    left=20mm,
+    top=20mm,
+}
 
 \title{
     \textbf{Distributed Systems - Project 1} \\
@@ -35,23 +44,17 @@ It serves as a complement for the course unit's first project and aims to descri
 
 \chapter{Enhancements}
 
-\section{Backup sub-protocol}
-
-WIP ----> This scheme can deplete the backup space rather rapidly, and cause too much activity on the nodes once that space is full. Can you think of an alternative scheme that ensures the desired replication degree, avoids these problems, and, nevertheless, can inter-operate with peers that execute the chunk backup protocol described above?
-
-\newpage
-
 \section{Restore sub-protocol}
 
 If the files we're restoring are too large, this protocol may not be desirable, for the following reasons:
 
-Only one peer needs to receive the chunks that correspond to the file that's being restored, however, we are using a multi-cast channel to send them all, so even peers that didn't request the restore of the that file are receiving its chunks.
+Only one peer needs to receive the chunks that correspond to the file that's being restored, however, we are using a multicast channel to send them all, so even peers that didn't request the restore of that file are receiving its chunks.
 
 To eliminate this problem, we opted to use TCP, since it provides a direct and safe connection and it was required to obtain full credit.
 
 Initiator Peer:
 
-\begin{minted}{java}
+\begin{minted}[breaklines]{java}
 socket = new ServerSocket(0);
 socket.setSoTimeout(1000);
 
@@ -77,7 +80,7 @@ Peer who has chunk:
 // Open connection
 socket = new Socket("localhost", get_chunk_msg.getPort());
 
-// send msg
+// Send message
 DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 outputStream.write(message_bytes);
 outputStream.flush();
@@ -85,19 +88,18 @@ socket.close()
 \end{minted}
 
 For this enhancement, the initiator peer opens a TCP server to receive data directly from the peer instead of the chunk being sent to the multicast channel. Port 0 is passed to the constructor of the server socket so that the socket uses an available port. 
-We had to create a different GETCHUNK message for the enhanced version of this protocol where we add the port the peer needs to use in the constructor of the socket in order to open the connection with the initiator peer. If the connection is established, the peer sends the Chunk message to the intiator peer using a DataOutputStream and the connections is closed.
 
-* Snippets of the code are simplified in order to focus on the TCP/IP connection
+We had to create a different \texttt{GETCHUNK} message for the enhanced version of this protocol where we add the port the peer needs to use in the constructor of the socket in order to open the connection with the initiator peer. If the connection is established, the peer sends the \texttt{CHUNK} message to the initiator peer using a \texttt{DataOutputStream} and the connections is closed. \newline
+
+\textbf{Note:} Snippets of the code are simplified in order to focus on the TCP/IP connection
 
 \newpage
 
 \section{Delete sub-protocol}
 
-If a peer that backs up some chunks of the file is not running at the time the initiator peer sends a DELETE message for that file, the space used by these chunks will never be reclaimed.
+If a peer that backs up some chunks of the file is not running at the time the initiator peer sends a \texttt{DELETE} message for that file, the space used by these chunks will never be reclaimed.
 
-Code snippet:*
-
-\begin{minted}{java} 
+\begin{minted}{java}
 // Send WOKEUP message
 WokeUpMsg woke_msg = new WokeUpMsg(peer.id);
 peer.control_channel.send(woke_msg.getBytes(null, 0));
@@ -109,54 +111,61 @@ deleted_files = new ConcurrentHashMap<String, String>().newKeySet();
 // Add file_id to set when asked to delete
 deleted_files.add(file.getId());
 
-// Upon receiving WOKEUP msg start delete protocol for each set entry
+// Upon receiving WOKEUP message start delete protocol for each set entry
 for(String file_id: deleted_files)
     pool.execute(new Delete(peer, version, file_id, mc_channel));
 \end{minted} 
 
-We created a new message: WOKEUP message. This message is sent when a peer starts running and is sent to the MC channel. Its purpose is to signal the beginning of execution of a peer.
-With the enhanced delete protocol, the peer stores the file ids of file it has asked to delete. When a wakeup message is received, the WokeUpMessageHandler procceeds to start the delete sub protocol for each of the file ids of files that a peer asked to delete. By doing this, if a peer did not received the delete messages while it was not running, then it will receive when it wakes up. Furthermore, if a peer asks to backup a previously delete file again, the peer wont send more delete messages regarding that file when it receives a WOKEUP message.
+To solve this problem, we created a new message \texttt{WOKEUP}. 
 
-*The code is simplified in order to focus on the enhancement.
+This message is sent when a peer starts running and is sent to the MC channel. Its purpose is to signal the beginning of the execution of a peer.
+
+With the enhanced Delete protocol, the peer stores the file IDs of the file it has asked to delete. When a \texttt{WOKEUP} message is received, the \texttt{WokeUpMessageHandler} proceeds to start the delete sub-protocol for each of the file ids of files that a peer asked to delete. 
+
+By doing this, if a peer did not receive the \texttt{DELETE} messages while it was not running, then it will receive when it wakes up. Furthermore, if a peer asks to backup a previously deleted file again, the peer won't send more delete messages regarding that file when it receives a \texttt{WOKEUP} message. \newline
+
+\textbf{Note:} The code is simplified in order to focus on the enhancement.
 
 \chapter{Concurrency Design}
 
-Regarding concurrency, we opted for following most of the hints purposed in https://www.overleaf.com/project/6071d537fc84b5c0390baa17 .
+Regarding concurrency, we opted for following most of the \href{https://web.fe.up.pt/~pfs/aulas/sd2021/projs/proj1/concurrency_hints.html}{hints} proposed.
 
-THREADS
+\section{Threads}
 
-For each multicast channel there is a thread running which is responsible for receiving packets.  
+For each multicast channel, there is a thread running which is responsible for receiving packets.  
 
-\begin{minted}{java}
-    @Override
-    public void run() {
-        if (start() != 0)
-            return;
+\begin{minted}[breaklines]{java}
+@Override
+public void run() {
+    if (start() != 0)
+        return;
 
-        running = true;
+    running = true;
 
-        while (running) {
-            try {
-                DatagramPacket packet = new DatagramPacket(buf, buf.length);
-                socket.receive(packet); // Receive packet
-                parseMessage(packet.getData(), packet.getLength());
-            }
+    while (running) {
+        try {
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+            socket.receive(packet); // Receive packet
+            parseMessage(packet.getData(), packet.getLength());
+        }
 
-            catch (IOException e) {
-                System.err.println("No more messages.");
-                stop();
-            }
+        catch (IOException e) {
+            System.err.println("No more messages.");
+            stop();
         }
     }
+}
 \end{minted}
 
-For the processing of the messages received, we created message handlers for each message type and for each of these handlers there is a thread. This makes it possible to process different messages at the same time. Each channel has its own CachedThreadPool that will execute each handler for each message. Example is bellow.
+For the processing of the messages received, we created message handlers for each message type, and for each of these handlers there is a thread. 
 
-\begin{minted}{java}
+This makes it possible to process different messages at the same time. Each channel has its own \texttt{CachedThreadPool} that will execute each handler for each message.
 
+An example follows below:
+
+\begin{minted}[breaklines]{java}
 public class MDR_Channel extends Channel {
-
-    //etc ...
+    // etc ...
 
     @Override
     protected void parseMessage(byte[] msg, int msg_len) {
@@ -200,9 +209,13 @@ public class DeleteMessageHandler extends MessageHandler{
 }
 \end{minted}
 
-In order to make it possible for a peer to execute multiple subprotocols at the same time (backup, restore, etc...), each subprotocol runs on a thread and peer has its own CachedThreadPool. This pool is responsible for executing the multicast channels threads and the subprotocol threads. Example bellow.
+In order to make it possible for a peer to execute multiple sub-protocols at the same time (backup, restore, etc...), each sub-protocol runs on a thread and a peer has its own \texttt{CachedThreadPool}. 
 
-\begin{minted}{java}
+This pool is responsible for executing the multicast channels threads and the sub-protocol threads.
+
+An example follows below:
+
+\begin{minted}[breaklines]{java}
 public class Peer implements RMI {
 public ExecutorService pool;
 
@@ -235,25 +248,82 @@ public ExecutorService pool;
 }
 \end{minted}
 
-Conclusion: 
-Although threads allow us to process many messages and to run many subprotocols at the same time, thread objects use a significant amount of memory. Additionaly, in a large-scale application,allocating and deallocating many thread objects creates a significant memory management overhead. By using worker threads (thread pools) we minimized the overhead due to thread creation. We opted for using a CachedThreadPool because it creates new threads as needed, but will reuse previously constructed threads when they are available.
+To avoid sleeping, we used the class \texttt{java.util.concurrent.ScheduledThreadPoolExecutor}, which allowed us to schedule a "timeout" handler, without using any thread before the timeout expires.
 
-APPROPRIATE DATA STRUCTURES
+\begin{minted}[breaklines]{java}
+for(int i = 0; i < MAX_TRIES; i++) {
+    scheduledPool.schedule(() -> {
+        // Send message
+        control_channel.send(message_bytes);
+    }, 400 * i, TimeUnit.MILLISECONDS);
+}
+\end{minted}
 
-With the use of threads, a need for appropriate data structures and thread-safe and synchronized methods. By using the java.util.concurrent package we were able to achieve concurrency in our program. 
+In conclusion, although threads allow us to process many messages and to run many sub-protocols at the same time, thread objects use a significant amount of memory. 
 
-We used a concurrent hash map(https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ConcurrentHashMap.html) which supports full concurrency of retrievals and adjustable expected concurrency for updates. 
-- synchronized methods
-- concurrent hash map (appropriate data structures)
-- atomic variables
+Additionally, in a large-scale application, allocating and deallocating many thread objects creates a significant memory management overhead. By using worker threads (thread pools) we minimized the overhead due to thread creation. We opted for using a \texttt{CachedThreadPool} because it creates new threads as needed, but will reuse previously constructed threads when they are available.
 
+We also used synchronized methods to ensure that only one thread could execute them at a time. Example of a synchronized method:
 
-NO BLOCKING
-- No sleeping
-To avoid sleeping, you can use the class java.util.concurrent.ScheduledThreadPoolExecutor, which allows you to schedule a "timeout" handler, without using any thread before the timeout expires.
-- asynchronous file channels
+\begin{minted}[breaklines]{java}
+public synchronized int getPerceivedRP(String file_path, int chunk_no) {
+    BackedUpFile file = backed_up_files.get(file_path);
+    if (file != null)
+        return file.getPerceivedRP(chunk_no);
 
-https://web.fe.up.pt/~pfs/aulas/sd2021/projs/proj1/concurrency\_hints.html
+    Chunk chunk = stored_chunks.get(file_path);
+    if(chunk != null)
+        return chunk.getPerceivedRP();
 
+    return 0;
+}
+\end{minted}
+
+\section{Appropriate Data Structures}
+
+With the use of threads, a need for appropriate data structures and thread-safe and synchronized methods. By using the \texttt{java.util.concurrent} package we were able to achieve concurrency in our program. 
+
+We used a \texttt{\href{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ConcurrentHashMap.html}{ConcurrentHashMap}}  which supports full concurrency of retrievals and adjustable expected concurrency for updates. 
+
+Using the key set of a \texttt{ConcurrentHashMap}, we were also able to have a concurrent set. 
+
+We also used used \texttt{AtomicBooleans} and \texttt{AtomicLongs} from the \newline \texttt{java.util.concurrent.atomic} package which contains a small toolkit of classes that support lock-free thread-safe programming on single variables.
+
+The next snippet contains some examples:
+
+\begin{minted}{java}
+// Atomics
+public final AtomicLong max_space;
+public AtomicLong used_space;
+
+// Sets
+private final Set<Observer> observers;
+observers = ConcurrentHashMap.newKeySet();
+
+// Concurrent Hash Map
+private ConcurrentHashMap<Integer, Chunk> chunks;
+this.chunks = new ConcurrentHashMap<>();
+\end{minted}
+
+\section{No Blocking}
+
+At some point in the development of the application, we used semaphores from \newline \texttt{java.util.concurrent.Semaphore} package to access shared variables between threads. However, we ended up removing them to reduce blocking. 
+
+For ultimate scalability, we removed whatever blocking calls are left, in this case, the calls for file-system access.
+
+Previously, we used \texttt{DataOutputStream} and \texttt{DataInputStream} to write to and read from files, respectively, which were replaced with \texttt{AsynchronousFileChannel}.
+
+An example of reading a chunk using this method follows below.
+
+\begin{minted}{java}
+Path path = Paths.get(chunk.getPath());
+AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+
+ByteBuffer buffer = ByteBuffer.allocate(Storage.MAX_CHUNK_SIZE);
+
+Future<Integer> operation = fileChannel.read(buffer, 0); // Read chunk
+
+int read_bytes = operation.get();
+\end{minted}
 
 \end{document}
