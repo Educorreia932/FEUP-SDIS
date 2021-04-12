@@ -16,4 +16,4 @@ else
     exit 1
 fi
 
-rm -rf ../filesystem/$peer_id
+rm -rf ./filesystem/peer$peer_id

@@ -7,15 +7,10 @@ import messages.Message;
 import messages.PutChunkMessage;
 import peer.Peer;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class MDB_Channel extends Channel implements Runnable{
-    private final Set<RemovedMessageHandler> observers;
 
     public MDB_Channel(String host, int port, Peer peer) {
         super(host, port, peer);
-        observers = ConcurrentHashMap.newKeySet();
     }
 
     @Override
@@ -40,18 +35,5 @@ public class MDB_Channel extends Channel implements Runnable{
             // Putchunk Message Handler
             pool.execute(new PutChunkMessageHandler(put_chunk_msg, body, peer));
         }
-    }
-
-    private void notifyObserver(String file_id, int chunk_no) {
-        for (RemovedMessageHandler observer : observers)
-            observer.notify(file_id, chunk_no);
-    }
-
-    public void subscribe(RemovedMessageHandler subscriber){
-        observers.add(subscriber);
-    }
-
-    public void unsubscribe(RemovedMessageHandler subscriber){
-        observers.remove(subscriber);
     }
 }

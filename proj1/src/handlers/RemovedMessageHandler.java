@@ -5,12 +5,15 @@ import messages.RemovedMessage;
 import peer.Peer;
 import peer.storage.Chunk;
 import subprotocols.Backup;
+import utils.Observer;
 
 import java.io.File;
 import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RemovedMessageHandler extends MessageHandler {
+public class RemovedMessageHandler extends MessageHandler implements Observer {
     private final int chunk_no;
     private final int sender_id;
     private final String version;
@@ -48,8 +51,8 @@ public class RemovedMessageHandler extends MessageHandler {
 
                 //Sleep
                 int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
-                try {
-                    Thread.sleep(sleep_time);
+                ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
+                scheduledPool.schedule(() -> {
                     // Unsubscribe
                     backup_channel.unsubscribe(this);
                     // Abort
@@ -58,13 +61,12 @@ public class RemovedMessageHandler extends MessageHandler {
                     Backup task = new Backup(peer, version, chunk_file, chunk, peer.getBackup_channel(),
                             peer.getControl_channel());
                     peer.pool.execute(task);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                }, sleep_time, TimeUnit.MILLISECONDS);
             }
         }
     }
 
+    @Override
     public void notify(String file_id, int chunk_no){
         abort.set(file_id.equals(this.file_id) && chunk_no == this.chunk_no);
     }

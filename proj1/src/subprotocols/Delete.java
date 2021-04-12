@@ -2,7 +2,6 @@ package subprotocols;
 
 import channels.MC_Channel;
 import messages.DeleteMessage;
-import messages.StoredMessage;
 import peer.Peer;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;

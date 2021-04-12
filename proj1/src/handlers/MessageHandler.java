@@ -10,5 +10,4 @@ public abstract class MessageHandler implements Runnable{
         this.file_id = file_id;
         this.storage = storage;
     }
-
 }

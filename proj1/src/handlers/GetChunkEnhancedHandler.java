@@ -5,6 +5,7 @@ import messages.ChunkMessage;
 import messages.GetChunkEnhancedMsg;
 import peer.Peer;
 import peer.storage.Storage;
+import utils.Observer;
 import utils.Pair;
 
 import java.io.*;
@@ -19,13 +20,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class GetChunkEnhancedHandler extends MessageHandler {
+public class GetChunkEnhancedHandler extends MessageHandler implements Observer {
     private final int chunk_no;
     private final int peer_id;
     private final String version;
     private final MDR_Channel restore_channel;
     private Socket socket;
+    private final AtomicBoolean abort;
 
     public GetChunkEnhancedHandler(GetChunkEnhancedMsg get_chunk_msg, Peer peer) {
         super(get_chunk_msg.getFile_id(), peer.storage);
@@ -33,6 +36,7 @@ public class GetChunkEnhancedHandler extends MessageHandler {
         version = get_chunk_msg.getVersion();
         peer_id = peer.id;
         restore_channel = peer.getRestore_channel();
+        abort = new AtomicBoolean(false);
 
         try {
             socket = new Socket("localhost", get_chunk_msg.getPort());
@@ -66,16 +70,17 @@ public class GetChunkEnhancedHandler extends MessageHandler {
             // Get message byte array
             byte[] message_bytes = message.getBytes(buffer.array(), read_bytes);
 
-            // Clean hash map
-            restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no));
+            // Subscribe
+            restore_channel.subscribe(this);
 
             int sleep_time = new Random().nextInt(400); // Sleep (0-400)ms
 
             ScheduledThreadPoolExecutor scheduledPool = new ScheduledThreadPoolExecutor(1);
             scheduledPool.schedule(() -> {
-                // Abort if received chunk message
-                if (restore_channel.received_chunks.remove(Pair.create(file_id, chunk_no)) != null)
-                    return;
+                // Unsubscribe
+                restore_channel.unsubscribe(this);
+                // Abort
+                if(abort.get()) return;
 
                 // Send message
                 try {
@@ -94,5 +99,10 @@ public class GetChunkEnhancedHandler extends MessageHandler {
         catch (IOException | ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void notify(String file_id, int chunk_no){
+        abort.set(file_id.equals(this.file_id) && chunk_no == this.chunk_no);
     }
 }

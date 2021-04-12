@@ -1,11 +1,16 @@
 package channels;
 
+import handlers.MessageHandler;
+import handlers.RemovedMessageHandler;
 import peer.Peer;
+import utils.Observer;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,12 +24,14 @@ public abstract class Channel implements Runnable {
     protected final static int MAX_SIZE = 66000;
     protected byte[] buf = new byte[MAX_SIZE];
     protected final ExecutorService pool;
+    private final Set<Observer> observers;
 
     public Channel(String host, int port, Peer peer) {
         this.host = host;
         this.port = port;
         this.peer = peer;
         pool = Executors.newCachedThreadPool();
+        observers = ConcurrentHashMap.newKeySet();
     }
 
     public int start() {
@@ -91,4 +98,17 @@ public abstract class Channel implements Runnable {
     }
 
     protected abstract void parseMessage(byte[] msg, int msg_len);
+
+    void notifyObserver(String file_id, int chunk_no) {
+        for (Observer observer : observers)
+            observer.notify(file_id, chunk_no);
+    }
+
+    public void subscribe(Observer subscriber){
+        observers.add(subscriber);
+    }
+
+    public void unsubscribe(Observer subscriber){
+        observers.remove(subscriber);
+    }
 }
