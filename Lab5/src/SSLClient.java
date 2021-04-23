@@ -1,8 +1,9 @@
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.Arrays;
 
@@ -35,14 +36,14 @@ public class SSLClient {
 
         sslSocket.setEnabledCipherSuites(cypher_suites);
 
-        OutputStream outputStream = sslSocket.getOutputStream();
-        InputStream inputStream = sslSocket.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+        PrintWriter writer = new PrintWriter(sslSocket.getOutputStream(), true);
 
         if (oper.equals("REGISTER"))
-            register(outputStream, inputStream, opnd[0], opnd[1]);
+            register(writer, reader, opnd[0], opnd[1]);
 
         else
-            lookup(outputStream, inputStream, opnd[0]);
+            lookup(writer, reader, opnd[0]);
 
         sslSocket.close();
     }
@@ -52,12 +53,12 @@ public class SSLClient {
         System.exit(1);
     }
 
-    public static void register(OutputStream outputStream, InputStream inputStream, String name, String address) {
+    public static void register(PrintWriter writer, BufferedReader reader, String name, String address) {
         String message = String.format("REGISTER %s %s", name, address);
 
         try {
-            outputStream.write(message.getBytes());
-            String response = new String(inputStream.readAllBytes());
+            writer.println(message);
+            String response = reader.readLine();
             System.out.println("SSLCLIENT: " + message + " : " + response);
         }
 
@@ -66,12 +67,12 @@ public class SSLClient {
         }
     }
 
-    public static void lookup(OutputStream outputStream, InputStream inputStream, String name) {
+    public static void lookup(PrintWriter writer, BufferedReader reader, String name) {
         String message = String.format("LOOKUP %s", name);
 
         try {
-            outputStream.write(message.getBytes());
-            String response = new String(inputStream.readAllBytes());
+            writer.println(message);
+            String response = reader.readLine();
             System.out.println("SSLCLIENT: " + message + " : " + response);
         }
 

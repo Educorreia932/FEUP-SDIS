@@ -1,7 +1,10 @@
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
 
@@ -31,6 +34,7 @@ public class SSLServer {
                 case "REGISTER":
                     register(writer, fields[1], fields[2]);
                     break;
+
                 case "LOOKUP":
                     lookup(writer, fields[1]);
                     break;
@@ -47,7 +51,7 @@ public class SSLServer {
 
         String message = String.format("%d %s %s", entries.size(), name, address);
 
-        writer.print(message);
+        writer.println(message);
     }
 
     private static void lookup(PrintWriter writer, String name) {
@@ -56,6 +60,6 @@ public class SSLServer {
         if (entries.containsKey(name))
             message = String.format("%d %s %s", entries.size(), name, entries.get(name));
 
-        writer.print(message);
+        writer.println(message);
     }
 }
