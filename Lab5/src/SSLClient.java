@@ -27,9 +27,8 @@ public class SSLClient {
             num_opnd = 1;
         }
 
-        else {
+        else
             usage();
-        }
 
         String[] opnd = Arrays.copyOfRange(args, 3, 3 + num_opnd);
         String[] cypher_suites = Arrays.copyOfRange(args, cypher_suites_index, args.length);
